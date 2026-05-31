@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f3f7ff">
+<title>Emilka — Łowczyni Wiedzy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=Baloo+2:wght@600;700;800&family=Quicksand:wght@500;600;700&family=Poppins:wght@600;700;800&family=Mulish:wght@600;700;800&family=Comfortaa:wght@600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --magenta:#ff4d9d; --pink:#ff7ac6; --cyan:#22bfe6; --violet:#9b59e6;
+    --green:#58cc62; --green-d:#46a852; --gold:#ffc83d; --gold-d:#e8a90c;
+    --blue:#2bb3f0; --blue-d:#1f8fc4;
+    --text:#4a3a6b; --muted:#9385b3; --card:#ffffff; --line:#ece4f7;
+    --shadow:rgba(120,90,170,.18); --btnsh:rgba(0,0,0,.16);
+    --bg:linear-gradient(180deg,#f2f6ff 0%,#e9edff 100%);
+    --fhead:'Fredoka', sans-serif; --fbody:'Nunito', sans-serif;
+    --cH:#ffce5a; --cHd:#efab2e; --cHl:#ffe49b;
+    --mapTint:rgba(255,77,157,.08);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; }
+  html,body{ margin:0; height:100%; overflow:hidden; touch-action:manipulation;
+    font-family:var(--fbody); font-weight:700; color:var(--text); background:var(--bg); transition:background .5s ease; }
+  h1,h2,h3,.fhead{ font-family:var(--fhead); }
+  #app{ position:fixed; inset:0; display:flex; flex-direction:column; }
+
+  /* soft decorative blobs */
+  .sky{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .sky b{ position:absolute; border-radius:50%; filter:blur(8px); opacity:.45; animation:float 9s infinite ease-in-out; }
+  @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+
+  .screen{ position:relative; z-index:1; flex:1; display:none; flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); min-height:0; }
+  .screen.on{ display:flex; animation:fade .35s ease; }
+  @keyframes fade{ from{opacity:0;transform:scale(.98)} to{opacity:1;transform:scale(1)} }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; gap:10px; flex:none; }
+  .iconbtn{ width:52px; height:52px; border-radius:18px; border:none; font-size:24px; cursor:pointer; color:var(--text);
+    background:var(--card); box-shadow:0 4px 0 var(--btnsh); }
+  .iconbtn:active{ transform:translateY(4px); box-shadow:0 1px 0 var(--btnsh); }
+  .stars{ font-family:var(--fhead); font-size:clamp(19px,4.6vw,28px); font-weight:700; color:#9a6a00;
+    background:linear-gradient(180deg,#ffe07a,#ffc83d); padding:7px 18px; border-radius:30px; display:flex; align-items:center; gap:6px; box-shadow:0 4px 0 var(--gold-d); }
+  .ttl{ font-family:var(--fhead); font-size:clamp(18px,5vw,26px); font-weight:700; }
+
+  /* ---------- HOME ---------- */
+  #home{ align-items:center; justify-content:center; text-align:center; gap:1.3vh; padding:2vh 4vw; }
+  .home-hero{ display:flex; flex-direction:column; align-items:center; position:relative; }
+  #emiHome{ width:clamp(110px,24vw,190px); position:relative; }
+  #petHome{ position:absolute; right:-6%; bottom:8%; font-size:clamp(26px,6.5vw,48px); filter:drop-shadow(0 4px 6px rgba(120,90,170,.3)); }
+  .logo{ font-family:var(--fhead); font-size:clamp(32px,7.6vw,66px); font-weight:700; line-height:1;
+    background:linear-gradient(90deg,var(--blue),var(--magenta),var(--gold-d));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:clamp(13px,3.2vw,19px); color:var(--magenta); font-weight:800; }
+  .worlds{ display:flex; gap:clamp(10px,2.6vw,22px); flex-wrap:wrap; justify-content:center; max-width:680px; }
+  .world{ width:clamp(102px,22vw,160px); aspect-ratio:1/1; border-radius:28px; border:none; cursor:pointer; color:#fff;
+    font-family:var(--fhead); font-weight:700; font-size:clamp(14px,3.2vw,20px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    box-shadow:0 9px 0 var(--btnsh),0 12px 22px var(--shadow); transition:transform .12s, box-shadow .12s; }
+  .world .ico{ font-size:clamp(34px,8vw,58px); line-height:1; }
+  .world:active{ transform:translateY(7px); box-shadow:0 2px 0 var(--btnsh); }
+  .w-letters{ background:linear-gradient(160deg,#ff6fb0,#ff3d8e); }
+  .w-numbers{ background:linear-gradient(160deg,#46c8f5,#1f8fc4); }
+  .w-logic{ background:linear-gradient(160deg,#b06bff,#8338d6); }
+  .w-tf{ background:linear-gradient(160deg,#34d6c0,#159c8b); }
+  .menu-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .pill{ border:none; cursor:pointer; border-radius:30px; padding:12px 20px; color:var(--text); font-family:var(--fhead);
+    font-weight:700; font-size:clamp(13px,3.2vw,17px); background:var(--card); box-shadow:0 4px 0 var(--btnsh);
+    display:flex; align-items:center; gap:6px; }
+  .pill:active{ transform:translateY(4px); box-shadow:0 1px 0 var(--btnsh); }
+  .pill.gold{ background:linear-gradient(180deg,#ffe07a,#ffc83d); color:#9a6a00; box-shadow:0 4px 0 var(--gold-d); }
+  .topstars{ position:fixed; top:calc(env(safe-area-inset-top) + 12px); right:16px; z-index:5;
+    font-family:var(--fhead); font-size:clamp(18px,4.4vw,26px); font-weight:700; color:#9a6a00;
+    background:linear-gradient(180deg,#ffe07a,#ffc83d); padding:7px 16px; border-radius:30px; box-shadow:0 4px 0 var(--gold-d); }
+
+  /* ---------- MAP (Duolingo-style) ---------- */
+  .map-banner{ display:flex; align-items:center; gap:12px; padding:4px 18px 8px; flex:none; justify-content:center; }
+  .map-banner .emi{ width:clamp(54px,12vw,82px); flex:none; }
+  .map-banner .bubble{ background:var(--card); color:var(--text); border-radius:18px; padding:10px 16px; font-family:var(--fhead);
+    font-weight:700; font-size:clamp(14px,3.6vw,20px); box-shadow:0 4px 0 var(--btnsh); position:relative; }
+  .map-banner .bubble:after{ content:""; position:absolute; left:-10px; top:18px; border:10px solid transparent; border-right-color:var(--card); }
+  .map-scroll{ flex:1; overflow-y:auto; overflow-x:hidden; position:relative; -webkit-overflow-scrolling:touch; background:var(--mapTint); }
+  .map-inner{ position:relative; margin:0 auto; max-width:480px; }
+  .trail{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .node{ position:absolute; width:72px; height:72px; border-radius:50%; transform:translateX(-50%); border:none;
+    font-family:var(--fhead); font-weight:700; font-size:25px; color:#fff; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 7px 0 rgba(0,0,0,.18); }
+  .node:active{ transform:translateX(-50%) translateY(4px); box-shadow:0 3px 0 rgba(0,0,0,.18); }
+  .node.lock{ background:#e2dcf0; color:#b3a6d0; box-shadow:0 7px 0 #cfc6e6; }
+  .node.cur.letters,.node.done.letters{}
+  .node.lt{ background:linear-gradient(160deg,#ff6fb0,#ff3d8e); box-shadow:0 7px 0 #c41f6b; }
+  .node.nu{ background:linear-gradient(160deg,#46c8f5,#1f8fc4); box-shadow:0 7px 0 #166d97; }
+  .node.lo{ background:linear-gradient(160deg,#b06bff,#8338d6); box-shadow:0 7px 0 #5e22a0; }
+  .node.tf{ background:linear-gradient(160deg,#34d6c0,#159c8b); box-shadow:0 7px 0 #0e6f63; }
+  .node.done{ background:linear-gradient(160deg,#6fe07a,#46a852)!important; box-shadow:0 7px 0 #2f7d3a!important; }
+  .node.cur{ animation:pulse 1.5s infinite; }
+  @keyframes pulse{ 0%,100%{box-shadow:0 7px 0 rgba(0,0,0,.18),0 0 0 0 rgba(255,77,157,.45)} 50%{box-shadow:0 7px 0 rgba(0,0,0,.18),0 0 0 16px rgba(255,77,157,0)} }
+  .node .ls{ position:absolute; bottom:-17px; font-size:14px; white-space:nowrap; color:var(--gold-d); letter-spacing:1px; }
+  .node .ls i{ color:#d8cdec; font-style:normal; }
+  .node .lp{ position:absolute; top:-32px; font-size:28px; }
+  .startflag{ position:absolute; top:-34px; left:50%; transform:translateX(-50%); background:var(--card); color:var(--magenta);
+    font-family:var(--fhead); font-weight:700; font-size:13px; padding:4px 12px; border-radius:20px; box-shadow:0 3px 0 var(--btnsh);
+    animation:bob 1s infinite ease-in-out; white-space:nowrap; }
+  .startflag:after{ content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:var(--card); }
+  @keyframes bob{ 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-5px)} }
+
+  /* ---------- GAME ---------- */
+  .lvlbar{ display:flex; align-items:center; justify-content:center; gap:8px; padding:2px 16px 6px; flex:none; font-family:var(--fhead); color:var(--muted); }
+  .pips{ display:flex; gap:6px; }
+  .pip{ width:14px; height:14px; border-radius:50%; background:#e2dcf0; }
+  .pip.on{ background:var(--gold); }
+  .stage{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:1.3vh; padding:0 14px 14px; overflow:hidden; min-height:0; }
+  .emi-row{ display:flex; align-items:center; gap:14px; max-width:760px; width:100%; justify-content:center; }
+  .emi{ width:clamp(66px,14vw,110px); flex:none; position:relative; }
+  .bubble{ background:var(--card); color:var(--text); border-radius:22px; padding:12px 18px; font-family:var(--fhead);
+    font-size:clamp(16px,3.9vw,25px); font-weight:600; position:relative; max-width:70%; box-shadow:0 5px 0 var(--btnsh); }
+  .bubble:after{ content:""; position:absolute; left:-12px; top:24px; border:12px solid transparent; border-right-color:var(--card); }
+  .prompt-big{ font-family:var(--fhead); font-size:clamp(78px,23vw,170px); font-weight:700; line-height:1; color:var(--violet); }
+  .prompt-objs{ font-size:clamp(30px,8vw,64px); line-height:1.1; text-align:center; max-width:92%; }
+  .options{ display:flex; gap:clamp(10px,2.4vw,20px); flex-wrap:wrap; justify-content:center; align-items:center; width:100%; max-width:820px; }
+  .opt{ border:none; cursor:pointer; border-radius:24px; color:#fff; font-family:var(--fhead); font-weight:700;
+    background:linear-gradient(160deg,#b06bff,#8338d6); box-shadow:0 9px 0 #5e22a0,0 12px 20px var(--shadow);
+    display:flex; align-items:center; justify-content:center; transition:transform .1s, box-shadow .1s, background .2s; min-width:88px; padding:10px; }
+  .opt:active{ transform:translateY(7px); box-shadow:0 2px 0 #5e22a0; }
+  .opt.letter,.opt.num{ width:clamp(88px,19vw,134px); height:clamp(88px,19vw,134px); font-size:clamp(42px,10vw,76px); }
+  .opt.pic{ width:clamp(102px,21vw,154px); height:clamp(102px,21vw,154px); font-size:clamp(50px,12vw,84px); background:var(--card); box-shadow:0 9px 0 var(--btnsh); }
+  .opt.group{ width:clamp(112px,23vw,164px); min-height:clamp(102px,21vw,144px); font-size:clamp(26px,6vw,40px); flex-wrap:wrap; gap:4px; padding:14px; line-height:1; background:var(--card); box-shadow:0 9px 0 var(--btnsh); }
+  .opt.shape{ width:clamp(102px,21vw,150px); height:clamp(102px,21vw,150px); background:var(--card); box-shadow:0 9px 0 var(--btnsh); }
+  .opt.right{ background:linear-gradient(160deg,#6fe07a,#46a852)!important; box-shadow:0 9px 0 #2f7d3a!important; }
+  .opt.wrong{ animation:shake .4s; opacity:.45; }
+  @keyframes shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
+  .shape-svg{ width:62%; height:62%; }
+  /* typing / keyboard */
+  .type-word{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+  .slot{ width:clamp(46px,11vw,68px); height:clamp(56px,13vw,82px); border-radius:14px; background:var(--card);
+    box-shadow:0 4px 0 var(--btnsh); display:flex; align-items:center; justify-content:center;
+    font-family:var(--fhead); font-weight:700; font-size:clamp(28px,7.5vw,48px); color:var(--violet); border:3px solid transparent; }
+  .slot.active{ border-color:var(--magenta); } .slot.miss{ border-color:var(--magenta); }
+  .kbd{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:580px; }
+  .key{ width:clamp(44px,10.5vw,62px); height:clamp(52px,12vw,70px); border-radius:14px; border:none;
+    background:linear-gradient(160deg,#b06bff,#8338d6); color:#fff; font-family:var(--fhead); font-weight:700;
+    font-size:clamp(24px,6vw,36px); box-shadow:0 5px 0 #5e22a0; cursor:pointer; }
+  .key:active{ transform:translateY(4px); box-shadow:0 1px 0 #5e22a0; }
+  .key.wrong{ animation:shake .4s; }
+  /* Prawda / Fałsz */
+  .tf-emoji{ font-size:clamp(56px,15vw,116px); text-align:center; line-height:1; }
+  .tf-q{ font-family:var(--fhead); font-weight:700; font-size:clamp(21px,5.4vw,34px); text-align:center; max-width:620px; margin:6px auto 0; color:var(--text); line-height:1.25; }
+  .tf-exp{ background:var(--card); border-radius:18px; padding:14px 18px; margin:12px auto 0; max-width:580px; box-shadow:0 5px 14px var(--shadow); font-size:clamp(15px,3.8vw,20px); line-height:1.35; color:var(--text); }
+  .tf-exp b{ color:var(--magenta); }
+  .opt.tf-true{ background:linear-gradient(160deg,#6fe07a,#46a852); box-shadow:0 8px 0 #2f7d3a; height:auto; min-width:150px; padding:18px 22px; font-size:clamp(19px,4.8vw,26px); }
+  .opt.tf-false{ background:linear-gradient(160deg,#ff8190,#e8485f); box-shadow:0 8px 0 #b62b40; height:auto; min-width:150px; padding:18px 22px; font-size:clamp(19px,4.8vw,26px); }
+  .opt.tf-next{ background:linear-gradient(160deg,#ffd23d,#e8a90c); color:#7a4d00; box-shadow:0 8px 0 #b07d00; height:auto; padding:16px 26px; font-size:clamp(18px,4.6vw,24px); flex-basis:100%; max-width:240px; }
+  @keyframes happy{ 0%,100%{transform:translateY(0) rotate(0)} 30%{transform:translateY(-18px) rotate(-5deg)} 60%{transform:translateY(-6px) rotate(4deg)} }
+  .emi.happy{ animation:happy .6s ease; }
+
+  /* ---------- panels ---------- */
+  .panel-title{ text-align:center; font-family:var(--fhead); font-size:clamp(20px,5.6vw,32px); font-weight:700; color:var(--magenta); padding:4px; }
+  .tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding:6px 10px; flex:none; }
+  .tab{ padding:9px 16px; border-radius:30px; border:none; font-family:var(--fhead); font-weight:700; cursor:pointer;
+    background:var(--card); color:var(--text); font-size:clamp(13px,3.2vw,17px); box-shadow:0 3px 0 var(--btnsh); }
+  .tab.on{ background:var(--magenta); color:#fff; box-shadow:0 3px 0 #c41f6b; }
+  .wrap-grid{ flex:1; display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-content:flex-start; padding:12px; overflow-y:auto; min-height:0; }
+  .card{ width:clamp(98px,26vw,156px); border-radius:20px; background:var(--card); border:4px solid transparent;
+    padding:8px; color:var(--text); cursor:pointer; position:relative; transition:transform .1s; box-shadow:0 5px 14px var(--shadow); }
+  .card:active{ transform:scale(.96); }
+  .card.sel{ border-color:var(--gold); }
+  .card .big{ font-size:clamp(44px,10vw,64px); text-align:center; line-height:1.1; min-height:1.1em; }
+  .card .lbl{ text-align:center; font-family:var(--fhead); font-weight:700; margin-top:6px; font-size:clamp(12px,3vw,15px); }
+  .card .lock{ position:absolute; inset:0; background:rgba(74,58,107,.72); border-radius:16px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-family:var(--fhead); font-weight:700; color:#fff; font-size:clamp(13px,3.2vw,16px); gap:4px; }
+  .card .lock .l-ico{ font-size:30px; }
+  .swatch{ height:54px; border-radius:12px; }
+  .fontprev{ text-align:center; padding:4px; } .fontprev .fp-h{ font-size:26px; } .fontprev .fp-b{ font-size:14px; color:var(--muted); }
+
+  .stat-cards{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; padding:14px 10px; }
+  .stat-card{ background:var(--card); border-radius:18px; padding:14px 18px; text-align:center; min-width:88px; box-shadow:0 5px 14px var(--shadow); }
+  .stat-card .v{ font-family:var(--fhead); font-size:clamp(26px,7vw,38px); font-weight:700; color:var(--violet); }
+  .stat-card .k{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .bars-wrap{ padding:18px 14px 30px; }
+  .bars{ display:flex; gap:8px; align-items:flex-end; justify-content:center; height:150px; }
+  .bar{ width:30px; background:linear-gradient(180deg,#46c8f5,#9b59e6); border-radius:8px 8px 0 0; position:relative; min-height:3px; transition:height .5s; }
+  .bar .bl{ position:absolute; bottom:-22px; left:-6px; right:-6px; text-align:center; font-size:11px; color:var(--muted); }
+  .bar .bv{ position:absolute; top:-18px; left:-6px; right:-6px; text-align:center; font-size:11px; font-weight:800; color:var(--gold-d); }
+  .ach{ flex:1; display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-content:flex-start; padding:12px; overflow-y:auto; min-height:0; }
+  .ach-item{ width:clamp(150px,42vw,230px); display:flex; gap:10px; align-items:center; background:var(--card); border-radius:16px; padding:10px 12px; box-shadow:0 4px 12px var(--shadow); }
+  .ach-item.locked{ opacity:.5; }
+  .ach-item .ai{ font-size:32px; flex:none; }
+  .ach-item .at{ font-family:var(--fhead); font-weight:700; font-size:14px; }
+  .ach-item .ad{ font-size:12px; color:var(--muted); }
+
+  /* ---------- overlays ---------- */
+  #reward{ position:fixed; inset:0; z-index:30; display:none; align-items:center; justify-content:center; }
+  #reward.on{ display:flex; }
+  #levelDone{ position:fixed; inset:0; z-index:35; display:none; align-items:center; justify-content:center; background:rgba(74,58,107,.4); backdrop-filter:blur(3px); }
+  #levelDone.on{ display:flex; }
+  .ld-card{ background:var(--card); border-radius:30px; padding:28px 30px; text-align:center; max-width:86%; box-shadow:0 20px 50px rgba(74,58,107,.35); }
+  .ld-card h2{ font-size:clamp(24px,7vw,38px); margin:0 0 6px; color:var(--magenta); }
+  .ld-stars{ font-size:clamp(44px,12vw,72px); letter-spacing:6px; margin:10px 0; }
+  .ld-stars i{ opacity:.25; font-style:normal; }
+  .ld-sub{ color:var(--muted); }
+  .ld-btns{ display:flex; gap:12px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+  .ld-btn{ border:none; cursor:pointer; border-radius:20px; padding:14px 24px; font-family:var(--fhead); font-weight:700; font-size:clamp(15px,4vw,20px); color:#fff; }
+  .ld-btn:active{ transform:translateY(4px); }
+  .ld-map{ background:#efe7fb; color:var(--violet); box-shadow:0 5px 0 #d6c8f0; } .ld-next{ background:linear-gradient(160deg,var(--green),var(--green-d)); box-shadow:0 5px 0 #2f7d3a; }
+  #unlockToast{ position:fixed; left:50%; top:14%; transform:translateX(-50%) translateY(-20px); z-index:50;
+    background:linear-gradient(180deg,#ffe07a,#ffc83d); color:#7a4d00; font-family:var(--fhead); font-weight:700;
+    padding:14px 22px; border-radius:20px; box-shadow:0 10px 26px rgba(120,90,170,.35); opacity:0; pointer-events:none;
+    transition:opacity .3s, transform .3s; font-size:clamp(14px,3.8vw,19px); text-align:center; max-width:84%; }
+  #unlockToast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .star-pop{ font-size:clamp(100px,34vw,260px); animation:pop .7s cubic-bezier(.2,1.4,.4,1); filter:drop-shadow(0 8px 16px rgba(255,200,61,.6)); }
+  @keyframes pop{ 0%{transform:scale(0) rotate(-40deg);opacity:0} 60%{transform:scale(1.25) rotate(10deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+  canvas#confetti{ position:fixed; inset:0; z-index:40; pointer-events:none; display:none; }
+
+  @media (orientation:landscape){
+    #home{ flex-direction:row; flex-wrap:wrap; gap:3vw; }
+    #emiHome{ width:clamp(100px,20vh,180px); } .logo{ font-size:clamp(28px,8vh,58px); }
+    .worlds{ max-width:46vw; } .world{ width:clamp(92px,18vh,150px); }
+    .stage{ display:grid; grid-template-columns:1fr 1fr; grid-template-areas:"emi emi" "prompt opts"; align-items:center; gap:1vh 2vw; padding:0 3vw 1.5vh; }
+    .emi-row{ grid-area:emi; } #promptArea{ grid-area:prompt; display:flex; flex-direction:column; align-items:center; justify-content:center; } .options{ grid-area:opts; }
+    .prompt-big{ font-size:clamp(60px,17vh,140px); } .prompt-objs{ font-size:clamp(26px,6.5vh,56px); }
+    .opt.letter,.opt.num{ width:clamp(72px,14vh,120px); height:clamp(72px,14vh,120px); }
+    .opt.pic,.opt.shape{ width:clamp(82px,15vh,134px); height:clamp(82px,15vh,134px); }
+    .opt.group{ width:clamp(92px,17vh,140px); min-height:clamp(82px,15vh,124px); }
+  }
+  .hint{ position:fixed; bottom:8px; left:0; right:0; text-align:center; font-size:11px; color:var(--muted); opacity:.7; z-index:2; }
+</style>
+</head>
+<body>
+<div class="sky" id="sky"></div>
+<div class="topstars" id="topStars">⭐ 0</div>
+
+<div id="app">
+  <!-- HOME -->
+  <section class="screen on" id="home">
+    <div class="home-hero"><div id="emiHome"></div><div id="petHome"></div></div>
+    <div><div class="logo">EMILKA</div><div class="sub">⚔️ Łowczyni Wiedzy ⚔️</div></div>
+    <div class="worlds">
+      <button class="world w-letters" data-world="letters"><span class="ico">🔤</span>Literki</button>
+      <button class="world w-numbers" data-world="numbers"><span class="ico">🔢</span>Liczby</button>
+      <button class="world w-logic" data-world="logic"><span class="ico">🧩</span>Zagadki</button>
+      <button class="world w-tf" data-world="truefalse"><span class="ico">🤔</span>Prawda/Fałsz</button>
+    </div>
+    <div class="menu-row">
+      <button class="pill gold" id="shopBtn">👗 Szatnia</button>
+      <button class="pill" id="statsBtn">📊 Statystyki</button>
+      <button class="pill" id="achBtn">🏆 Osiągnięcia</button>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section class="screen" id="map">
+    <div class="topbar">
+      <button class="iconbtn" id="mapBack">🏠</button>
+      <div class="ttl" id="mapTitle">Mapa</div>
+      <div class="stars">⭐ <span class="starN">0</span></div>
+    </div>
+    <div class="map-banner"><div class="emi" id="emiMap"></div><div class="bubble" id="mapBubble">Wybierz poziom!</div></div>
+    <div class="map-scroll" id="mapScroll"><div class="map-inner" id="mapInner"></div></div>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="game">
+    <div class="topbar">
+      <div style="display:flex;gap:8px"><button class="iconbtn" id="homeBtn">🏠</button><button class="iconbtn" id="backBtn">🗺️</button></div>
+      <div class="stars">⭐ <span class="starN">0</span></div>
+      <button class="iconbtn" id="speakBtn">🔊</button>
+    </div>
+    <div class="lvlbar"><span id="lvlLabel"></span><span class="pips" id="pips"></span></div>
+    <div class="stage">
+      <div class="emi-row"><div class="emi" id="emiGame"></div><div class="bubble" id="bubble">Gotowa?</div></div>
+      <div id="promptArea"></div>
+      <div class="options" id="options"></div>
+    </div>
+  </section>
+
+  <!-- WARDROBE -->
+  <section class="screen" id="wardrobe">
+    <div class="topbar"><button class="iconbtn" id="wdBack">🏠</button><div class="stars">⭐ <span class="starN">0</span></div><div style="width:52px"></div></div>
+    <div class="panel-title">👗 Szatnia Emilki</div>
+    <div class="tabs" id="wdTabs">
+      <button class="tab on" data-tab="postac">🧒 Postać</button>
+      <button class="tab" data-tab="wlosy">💇 Włosy</button>
+      <button class="tab" data-tab="tlo">🌈 Tło</button>
+      <button class="tab" data-tab="pet">🐾 Przyjaciel</button>
+      <button class="tab" data-tab="font">✏️ Czcionka</button>
+      <button class="tab" data-tab="glos">🎙️ Głos</button>
+    </div>
+    <div class="wrap-grid" id="wdGrid"></div>
+  </section>
+
+  <!-- STATS -->
+  <section class="screen" id="stats">
+    <div class="topbar"><button class="iconbtn" id="stBack">🏠</button><div class="ttl">📊 Statystyki</div><div style="width:52px"></div></div>
+    <div id="statsBody" style="flex:1;overflow-y:auto;min-height:0"></div>
+  </section>
+
+  <!-- ACHIEVEMENTS -->
+  <section class="screen" id="achv">
+    <div class="topbar"><button class="iconbtn" id="acBack">🏠</button><div class="ttl">🏆 Osiągnięcia</div><div style="width:52px"></div></div>
+    <div class="ach" id="achGrid"></div>
+  </section>
+</div>
+
+<div id="reward"><div class="star-pop">⭐</div></div>
+<div id="levelDone"></div>
+<div id="unlockToast"></div>
+<canvas id="confetti"></canvas>
+<div class="hint">Pionowo i poziomo • mapy • statystyki • osiągnięcia</div>
+
+<script>
+/* =========================================================
+   EMILKA — ŁOWCZYNI WIEDZY  (v0.4 — Duolingo-kids look)
+   ========================================================= */
+const TOTAL=30, QPL=6;
+let UNLOCK_ALL=true; // TESTOWO: wszystkie poziomy odblokowane (ustaw na false, by zablokować progresję)
+
+/* ---------- Persisted state ---------- */
+const SAVE='emilka_save_v4';
+let state={ stars:0, style:'idol', bg:'jasne', pet:'none', hair:'blonde', font:'fredoka', voiceName:null,
+  progress:{letters:{},numbers:{},logic:{},truefalse:{}}, stats:{}, ach:{}, styleChanged:false };
+try{ const s=JSON.parse(localStorage.getItem(SAVE)||'{}'); Object.assign(state,s);
+  state.progress=Object.assign({letters:{},numbers:{},logic:{},truefalse:{}},state.progress||{});
+  state.stats=state.stats||{}; state.ach=state.ach||{}; }catch(e){}
+function save(){ try{ localStorage.setItem(SAVE, JSON.stringify(state)); }catch(e){} }
+
+/* ---------- Fonts / Hair / BG / Pets ---------- */
+const FONTS={
+  fredoka:{ name:'Fredoka', head:"'Fredoka', sans-serif", body:"'Nunito', sans-serif" },
+  baloo:{ name:'Baloo', head:"'Baloo 2', cursive", body:"'Quicksand', sans-serif" },
+  poppins:{ name:'Poppins', head:"'Poppins', sans-serif", body:"'Mulish', sans-serif" },
+  comfortaa:{ name:'Comfortaa', head:"'Comfortaa', cursive", body:"'Varela Round', sans-serif" },
+};
+const FONT_ORDER=['fredoka','baloo','poppins','comfortaa'];
+const HAIR={
+  blonde:{ name:'Blond', need:0, c:['#ffce5a','#efab2e','#ffe49b'] },
+  honey:{ name:'Miodowy', need:0, c:['#e8a94e','#c4842f','#ffd98a'] },
+  brown:{ name:'Brąz', need:12, c:['#a86b3c','#7d4a26','#c89066'] },
+  dark:{ name:'Ciemny', need:24, c:['#5a4636','#3a2c20','#7d6450'] },
+  ginger:{ name:'Ruda', need:36, c:['#e86f3c','#c14d22','#ffa06a'] },
+  candy:{ name:'Różowe', need:55, c:['#ff8ac4','#e85aa0','#ffc0e0'] },
+  sky:{ name:'Niebieskie', need:80, c:['#7ab8ff','#4a86e8','#aed4ff'] },
+};
+const HAIR_ORDER=['blonde','honey','brown','dark','ginger','candy','sky'];
+const BG={
+  jasne:{ name:'Jasne', need:0, css:'linear-gradient(180deg,#f2f6ff,#e9edff)' },
+  candy:{ name:'Cukierki', need:0, css:'linear-gradient(180deg,#fff0f7,#ffe2f0)' },
+  mleczne:{ name:'Brzoskwinia', need:12, css:'linear-gradient(180deg,#fff6ec,#ffe9dc)' },
+  ocean:{ name:'Ocean', need:24, css:'linear-gradient(180deg,#e8f8ff,#d4f0ff)' },
+  forest:{ name:'Łąka', need:40, css:'linear-gradient(180deg,#eefbe9,#d8f5da)' },
+  rainbow:{ name:'Tęcza', need:65, css:'linear-gradient(140deg,#ffe0ef,#fff3d6,#e2f6ff,#efe2ff)' },
+};
+const BG_ORDER=['jasne','candy','mleczne','ocean','forest','rainbow'];
+const PETS={
+  none:{ name:'Brak', emoji:'', need:0 }, cat:{ name:'Kotek', emoji:'🐱', need:8 },
+  dog:{ name:'Piesek', emoji:'🐶', need:8 }, bunny:{ name:'Króliczek', emoji:'🐰', need:20 },
+  butterfly:{ name:'Motylek', emoji:'🦋', need:35 }, unicorn:{ name:'Jednorożec', emoji:'🦄', need:55 },
+  dragon:{ name:'Smoczek', emoji:'🐉', need:85 },
+};
+const PET_ORDER=['none','cat','dog','bunny','butterfly','unicorn','dragon'];
+function validate(){ if(!BG[state.bg])state.bg='jasne'; if(!HAIR[state.hair])state.hair='blonde';
+  if(!STYLES[state.style])state.style='idol'; if(!PETS[state.pet])state.pet='none'; if(!FONTS[state.font])state.font='fredoka'; }
+
+/* ---------- Character SVG ---------- */
+const SKIN='#ffe2c2';
+function face(){ return `
+  <circle cx="100" cy="100" r="48" fill="${SKIN}"/>
+  <ellipse cx="83" cy="100" rx="8" ry="10" fill="#fff"/><ellipse cx="117" cy="100" rx="8" ry="10" fill="#fff"/>
+  <circle cx="84" cy="102" r="5.5" fill="#3a2a1a"/><circle cx="118" cy="102" r="5.5" fill="#3a2a1a"/>
+  <circle cx="86" cy="100" r="1.8" fill="#fff"/><circle cx="120" cy="100" r="1.8" fill="#fff"/>
+  <ellipse cx="74" cy="116" rx="7" ry="4.5" fill="#ffb0c8" opacity=".6"/><ellipse cx="126" cy="116" rx="7" ry="4.5" fill="#ffb0c8" opacity=".6"/>
+  <path d="M88 118 q12 12 24 0" stroke="#c8607f" stroke-width="3.5" fill="none" stroke-linecap="round"/>`; }
+function gsvg(i){ return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;overflow:visible">${i}</svg>`; }
+const cH='var(--cH)', cHd='var(--cHd)', cHl='var(--cHl)';
+const STYLES={
+  cutie:{ name:'Słodziak', svg:()=>gsvg(`
+    <ellipse cx="48" cy="122" rx="18" ry="26" fill="${cHd}"/><ellipse cx="152" cy="122" rx="18" ry="26" fill="${cHd}"/>
+    <ellipse cx="48" cy="116" rx="14" ry="21" fill="${cH}"/><ellipse cx="152" cy="116" rx="14" ry="21" fill="${cH}"/>
+    <path d="M66 182 q34 -26 68 0 l14 56 -96 0z" fill="#ff79b0"/><path d="M66 182 q34 -26 68 0 l5 20 -78 0z" fill="#ffa3cc"/>
+    <rect x="92" y="152" width="16" height="34" rx="7" fill="${SKIN}"/>${face()}
+    <path d="M52 98 q-2 -54 48 -56 q50 2 48 56 q-14 -32 -48 -32 q-34 0 -48 32z" fill="${cH}"/>
+    <path d="M58 90 q12 -20 42 -20 q30 0 42 20 q-20 -10 -42 -10 q-22 0 -42 10z" fill="${cHl}"/>
+    <g fill="#ff2e74"><path d="M40 100 l-16 -10 0 22z"/><path d="M58 100 l16 -10 0 22z"/></g><circle cx="49" cy="100" r="6" fill="#ff5c95"/>
+    <g fill="#ff2e74"><path d="M142 100 l-16 -10 0 22z"/><path d="M160 100 l16 -10 0 22z"/></g><circle cx="151" cy="100" r="6" fill="#ff5c95"/>`) },
+  princess:{ name:'Księżniczka', svg:()=>gsvg(`
+    <path d="M50 96 q-18 70 6 122 q12 -30 16 -56 q-4 42 10 60 q40 -16 38 -66 q4 32 16 44 q16 -52 6 -104z" fill="${cHd}"/>
+    <path d="M58 96 q-12 64 8 112 q34 8 64 0 q20 -48 10 -112z" fill="${cH}"/>
+    <path d="M60 182 q40 -28 80 0 l20 58 -120 0z" fill="#c78bff"/><path d="M60 182 q40 -28 80 0 l6 20 -92 0z" fill="#e0baff"/>
+    <circle cx="100" cy="198" r="6" fill="#ffd23d"/><rect x="92" y="152" width="16" height="34" rx="7" fill="${SKIN}"/>${face()}
+    <path d="M52 100 q-2 -56 48 -58 q50 2 48 58 q-12 -34 -28 -22 q-8 -18 -20 -18 q-12 0 -20 18 q-16 -12 -28 22z" fill="${cH}"/>
+    <path d="M70 80 q14 -12 30 -12 q16 0 30 12" stroke="${cHl}" stroke-width="5" fill="none"/>
+    <path d="M70 64 l8 14 12 -18 10 18 12 -18 8 16" fill="none" stroke="#ffd23d" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="100" cy="56" r="4" fill="#ff5cae"/>`) },
+  explorer:{ name:'Odkrywczyni', svg:()=>gsvg(`
+    <path d="M150 96 q42 22 30 74 q-6 20 -24 16 q14 -42 -8 -82z" fill="${cHd}"/>
+    <path d="M150 102 q30 18 24 62" stroke="${cHl}" stroke-width="5" fill="none"/>
+    <path d="M66 182 q34 -24 68 0 l12 56 -92 0z" fill="#2bb6a8"/><path d="M100 158 l-12 26 12 12 12 -12z" fill="#ffd23d"/>
+    <path d="M84 170 l-7 60" stroke="#ff8a3d" stroke-width="9" stroke-linecap="round"/>
+    <rect x="92" y="152" width="16" height="34" rx="7" fill="${SKIN}"/>${face()}
+    <path d="M54 104 q0 -22 12 -32 l68 0 q12 10 12 32 q-20 -10 -46 -10 q-26 0 -46 10z" fill="${cH}"/>
+    <path d="M48 86 q4 -36 52 -36 q48 0 52 36 q-52 -16 -104 0z" fill="#ff8a3d"/>
+    <path d="M150 84 q24 0 32 9 l-2 9 q-16 -9 -32 -7z" fill="#e0742e"/><circle cx="100" cy="54" r="5" fill="#fff"/>`) },
+  fairy:{ name:'Wróżka', svg:()=>gsvg(`
+    <g opacity=".82"><ellipse cx="60" cy="172" rx="30" ry="48" fill="#9ff5e0" transform="rotate(-18 60 172)"/>
+    <ellipse cx="140" cy="172" rx="30" ry="48" fill="#ffc6ec" transform="rotate(18 140 172)"/></g>
+    <path d="M70 184 q30 -22 60 0 l12 52 -84 0z" fill="#7fe6c4"/><path d="M70 184 q30 -22 60 0 l4 16 -68 0z" fill="#b6f2dd"/>
+    <rect x="92" y="154" width="16" height="32" rx="7" fill="${SKIN}"/>${face()}
+    <circle cx="100" cy="48" r="16" fill="${cH}"/><circle cx="100" cy="48" r="16" fill="none" stroke="${cHd}" stroke-width="3"/>
+    <path d="M54 98 q-2 -52 46 -54 q48 2 46 54 q-12 -30 -46 -30 q-34 0 -46 30z" fill="${cH}"/>
+    <path d="M58 90 q12 -18 42 -18 q30 0 42 18" stroke="${cHl}" stroke-width="5" fill="none"/>
+    <g fill="#ff5cae"><circle cx="120" cy="60" r="5"/><circle cx="128" cy="56" r="5"/><circle cx="128" cy="64" r="5"/><circle cx="136" cy="60" r="5"/></g><circle cx="128" cy="60" r="3" fill="#ffd23d"/>
+    <line x1="148" y1="152" x2="170" y2="122" stroke="#ffd23d" stroke-width="4" stroke-linecap="round"/><text x="160" y="120" font-size="22">⭐</text>`) },
+  astro:{ name:'Astronautka', svg:()=>gsvg(`
+    <path d="M64 182 q36 -22 72 0 l10 54 -92 0z" fill="#3a6ff0"/><path d="M64 182 q36 -22 72 0 l4 16 -80 0z" fill="#7aa0ff"/>
+    <circle cx="100" cy="200" r="7" fill="#ffd23d"/><rect x="92" y="154" width="16" height="32" rx="7" fill="#cfe0ff"/>${face()}
+    <path d="M54 96 q-2 -52 46 -54 q48 2 46 54 q-12 -32 -46 -32 q-34 0 -46 32z" fill="${cH}"/>
+    <path d="M58 88 q12 -18 42 -18 q30 0 42 18 q-20 -10 -42 -10 q-22 0 -42 10z" fill="${cHl}"/>
+    <path d="M42 102 a58 58 0 1 1 116 0" fill="none" stroke="#9bb8e8" stroke-width="8"/>
+    <circle cx="42" cy="102" r="7" fill="#ff5cae"/><circle cx="158" cy="102" r="7" fill="#22bfe6"/>`) },
+  idol:{ name:'Gwiazda Pop', svg:()=>gsvg(`
+    <path d="M150 86 q42 28 30 92 q-4 22 -26 18 q18 -42 -2 -88z" fill="${cHd}"/>
+    <path d="M152 92 q28 26 18 72" stroke="#22bfe6" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M62 182 q38 -24 76 0 l10 54 -96 0z" fill="#ff4d9d"/><path d="M100 158 l-12 26 12 12 12 -12z" fill="#fff"/>
+    <text x="100" y="220" font-size="20" text-anchor="middle">⭐</text><rect x="92" y="152" width="16" height="34" rx="7" fill="${SKIN}"/>${face()}
+    <path d="M52 98 q-2 -54 48 -56 q50 2 48 56 q-14 -32 -48 -32 q-34 0 -48 32z" fill="${cH}"/>
+    <path d="M58 88 q12 -20 42 -20 q30 0 42 20 q-20 -10 -42 -10 q-22 0 -42 10z" fill="${cHl}"/>
+    <path d="M60 92 q4 -26 28 -32" stroke="#22bfe6" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M58 100 a44 30 0 0 1 84 0" fill="none" stroke="#3a2c4e" stroke-width="5" opacity=".8"/>
+    <circle cx="58" cy="104" r="8" fill="#22bfe6"/><path d="M58 104 q-14 6 -10 22" stroke="#3a2c4e" stroke-width="4" fill="none"/>
+    <circle cx="50" cy="128" r="4" fill="#ff4d9d"/><text x="150" y="58" font-size="16">✨</text>`) },
+};
+const STYLE_ORDER=['cutie','princess','explorer','fairy','astro','idol'];
+validate();
+
+/* ---------- Soft blobs ---------- */
+(function(){ const cols=['#ffd1e8','#cfe6ff','#ffe9b3','#e2d4ff','#cfeede']; let h='';
+  for(let i=0;i<8;i++){ const s=120+(i*53%160), x=(i*89%100), y=(i*61%100), d=(i%9)/2;
+    h+=`<b style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;background:${cols[i%cols.length]};animation-delay:${d}s"></b>`; }
+  document.getElementById('sky').innerHTML=h; })();
+
+/* ---------- Speech ---------- */
+let muted=false, plVoice=null;
+const FEMALE_PL=/(zofia|zosia|paulina|agnieszka|ewa|maja|alicja|julia|kinga|hanna|barbara|natalia|female|kobie|żeński|zenski)/i;
+function scoreVoice(v){ const n=(v.name||'').toLowerCase(); let s=0;
+  if(/natural/.test(n))s+=5; if(/online/.test(n))s+=3; if(/google/.test(n))s+=2;
+  if(FEMALE_PL.test(n))s+=4; if(v.localService===false)s+=1; return s; }
+function isPl(v){ return /^pl([-_]|$)/i.test(v.lang||'')||/polish|polski/i.test(v.name||''); }
+function pickVoice(){ const vs=speechSynthesis.getVoices();
+  if(state.voiceName){ const m=vs.find(v=>v.name===state.voiceName); if(m){ plVoice=m; return; } }
+  const pl=vs.filter(isPl);
+  if(!pl.length){ plVoice=null; return; }
+  pl.sort((a,b)=>scoreVoice(b)-scoreVoice(a)); plVoice=pl[0]; }
+if('speechSynthesis'in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function say(t){ if(muted||!('speechSynthesis'in window))return; try{ speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t); u.lang='pl-PL'; if(plVoice)u.voice=plVoice; u.rate=.96; u.pitch=1.08; speechSynthesis.speak(u);}catch(e){} }
+
+/* ---------- Knowledge base ---------- */
+const LETTERS_ORD=['A','B','C','D','E','F','G','H','I','J','K','L','Ł','M','N','O','P','R','S','T','U','W','Z'];
+const LETTERS={ A:['Arbuz','🍉'],B:['Balon','🎈'],C:['Cytryna','🍋'],D:['Dom','🏠'],E:['Ekran','📺'],F:['Foka','🦭'],
+  G:['Gruszka','🍐'],H:['Hulajnoga','🛴'],I:['Igła','🪡'],J:['Jabłko','🍎'],K:['Kot','🐱'],L:['Lody','🍦'],Ł:['Łódka','⛵'],
+  M:['Miś','🧸'],N:['Nos','👃'],O:['Oko','👁️'],P:['Pies','🐶'],R:['Ryba','🐟'],S:['Słoń','🐘'],T:['Tort','🎂'],
+  U:['Ucho','👂'],W:['Wąż','🐍'],Z:['Zegar','⏰'] };
+const WORDS=[['ul','🐝'],['kot','🐱'],['dom','🏠'],['nos','👃'],['oko','👁️'],['sok','🧃'],['lew','🦁'],['rak','🦞'],
+  ['ser','🧀'],['las','🌲'],['pies','🐶'],['lody','🍦'],['ryba','🐟'],['miś','🧸'],['ucho','👂'],['tort','🎂'],
+  ['mysz','🐭'],['sowa','🦉'],['kura','🐔'],['koza','🐐']];
+function uniqueLetters(w){ return [...new Set(w.toUpperCase().split(''))]; }
+const COUNT_EMOJI=['🍎','⭐','🎈','🍓','🐞','🌸','🐠','🍪','🦋','🍒','🐝','🌟','🧁','🌷'];
+const COLORS=[['Czerwony','#ff4d6a'],['Niebieski','#3da5ff'],['Zielony','#3ddc7f'],['Żółty','#ffd23d'],
+  ['Fioletowy','#b06bff'],['Pomarańczowy','#ff9a3d'],['Różowy','#ff7ac6']];
+const NUM_WORDS=['zero','jeden','dwa','trzy','cztery','pięć','sześć','siedem','osiem','dziewięć','dziesięć',
+  'jedenaście','dwanaście','trzynaście','czternaście','piętnaście','szesnaście','siedemnaście','osiemnaście','dziewiętnaście','dwadzieścia'];
+function nw(n){ return NUM_WORDS[n]!==undefined?NUM_WORDS[n]:String(n); }
+const CATEGORIES={ zwierzęta:['🐶','🐱','🐭','🐰','🦊','🐻','🐸','🦁','🐯','🐮'],
+  owoce:['🍎','🍌','🍓','🍐','🍒','🍇','🍑','🥝','🍊'], pojazdy:['🚗','🚌','✈️','🚲','🚂','🚀','🚓','🚜'],
+  jedzenie:['🍕','🍔','🍟','🍩','🍪','🧁','🍰','🥪'] };
+const CAT_KEYS=Object.keys(CATEGORIES);
+const PRAISE=['Brawo!','Super!','Wspaniale!','Tak jest!','Ekstra!','Świetnie!','Hura!','Cudownie!'];
+const TRY=['Spróbuj jeszcze raz','Prawie! Spróbuj inny','Poszukaj jeszcze','Może to inny?'];
+
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const $=id=>document.getElementById(id);
+const promptArea=()=>$('promptArea'), optionsEl=()=>$('options'), bubble=()=>$('bubble');
+function shapeSVG(k,c){
+  if(k==='circle')return `<svg class="shape-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="${c}"/></svg>`;
+  if(k==='square')return `<svg class="shape-svg" viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="12" fill="${c}"/></svg>`;
+  if(k==='triangle')return `<svg class="shape-svg" viewBox="0 0 100 100"><polygon points="50,10 92,88 8,88" fill="${c}"/></svg>`;
+  if(k==='star')return `<svg class="shape-svg" viewBox="0 0 100 100"><polygon points="50,6 61,38 95,38 67,58 78,92 50,72 22,92 33,58 5,38 39,38" fill="${c}"/></svg>`;
+  if(k==='heart')return `<svg class="shape-svg" viewBox="0 0 100 100"><path d="M50 86 L18 52 a18 18 0 0 1 32 -20 a18 18 0 0 1 32 20 z" fill="${c}"/></svg>`;
+  return '';
+}
+const SHAPES=['circle','square','triangle','star','heart'];
+
+/* ============== ROUND GENERATORS (d=level) ============== */
+function roundLetters(d){
+  const tv=['p2l','l2p']; if(d>=5)tv.push('missing'); if(d>=11)tv.push('spell');
+  const variant=pick(tv);
+  if(variant==='missing'||variant==='spell'){
+    const cap = variant==='spell' ? (d>=16?4:3) : 4;
+    const wp=WORDS.filter(w=>w[0].length<=cap), [w,em]=pick(wp.length?wp:WORDS);
+    renderType(em,w,variant); return;
+  }
+  const poolN=clamp(3+Math.ceil(d*0.8),4,LETTERS_ORD.length), pool=LETTERS_ORD.slice(0,poolN), nOpt=d>=10?4:3;
+  const target=pick(pool), [word,emoji]=LETTERS[target], distract=shuffle(pool.filter(k=>k!==target)).slice(0,nOpt-1);
+  if(variant==='l2p'){ promptArea().innerHTML=`<div class="prompt-big">${target}</div>`;
+    setBubble(`Znajdź obrazek na literę ${target}`); say(`Litera ${target}. Znajdź obrazek, który zaczyna się na ${target}.`);
+    renderOptions(shuffle([{k:target,c:1},...distract.map(k=>({k,c:0}))]).map(o=>({html:LETTERS[o.k][1],cls:'pic',correct:!!o.c,speak:LETTERS[o.k][0]})), ()=>say(`${target} jak ${word}!`));
+  }else{ promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(60px,17vw,130px)">${emoji}</div><div style="font-family:var(--fhead);font-weight:700;font-size:clamp(20px,5vw,32px);color:var(--magenta)">${word}</div>`;
+    setBubble(`Na jaką literę jest ${word}?`); say(`${word}. Na jaką literę zaczyna się ${word}?`);
+    renderOptions(shuffle([{k:target,c:1},...distract.map(k=>({k,c:0}))]).map(o=>({html:o.k,cls:'letter',correct:!!o.c,speak:o.k})), ()=>say(`${word} na literę ${target}!`));
+  }
+}
+function roundNumbers(d){
+  const variants=['count']; if(d>=4)variants.push('group'); if(d>=8)variants.push('largest');
+  if(d>=12)variants.push('add'); if(d>=15)variants.push('sub'); if(d>=20)variants.push('missadd');
+  const v=pick(variants), maxN=clamp(3+d,5,9);
+  if(v==='count'){ const n=1+rnd(maxN), e=pick(COUNT_EMOJI);
+    promptArea().innerHTML=`<div class="prompt-objs">${(e+' ').repeat(n).trim()}</div>`;
+    setBubble('Policz i dotknij liczby!'); say('Policz, ile tu jest. Dotknij właściwej liczby.');
+    let s=new Set([n]); while(s.size<3)s.add(1+rnd(maxN));
+    renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===n,speak:nw(x)})), ()=>say(`Tak! ${nw(n)}`));
+  }else if(v==='group'){ const n=1+rnd(clamp(maxN,5,7)), e=pick(COUNT_EMOJI);
+    promptArea().innerHTML=`<div class="prompt-big">${n}</div>`;
+    setBubble(`Dotknij grupy z ${nw(n)}!`); say(`Liczba ${nw(n)}. Dotknij grupy, gdzie jest ${nw(n)}.`);
+    let s=new Set([n]); while(s.size<3)s.add(1+rnd(clamp(maxN,5,7)));
+    renderOptions(shuffle([...s]).map(c=>({html:(e+' ').repeat(c).trim(),cls:'group',correct:c===n,speak:nw(c)})), ()=>say(`Brawo! ${nw(n)}`));
+  }else if(v==='largest'){ let s=new Set(); while(s.size<3)s.add(1+rnd(9)); const arr=[...s], mx=Math.max(...arr);
+    promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(22px,5.5vw,34px);color:var(--magenta)">Która liczba jest największa?</div>`;
+    setBubble('Dotknij największej!'); say('Dotknij największej liczby.');
+    renderOptions(shuffle(arr).map(x=>({html:x,cls:'num',correct:x===mx,speak:nw(x)})), ()=>say(`Tak! ${nw(mx)} jest największa.`));
+  }else if(v==='add'){ const cap=d>=20?9:5, a=1+rnd(cap), b=1+rnd(cap), sum=a+b;
+    promptArea().innerHTML=`<div class="prompt-big" style="font-size:clamp(54px,15vw,110px)">${a} + ${b}</div>`;
+    setBubble('Ile to razem?'); say(`Ile to jest ${nw(a)} plus ${nw(b)}?`);
+    let s=new Set([sum]); while(s.size<3)s.add(clamp(sum+(rnd(5)-2),1,18));
+    renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===sum,speak:nw(x)})), ()=>say(`Tak! To ${nw(sum)}`));
+  }else if(v==='sub'){ const a=2+rnd(8), b=1+rnd(a-1), res=a-b;
+    promptArea().innerHTML=`<div class="prompt-big" style="font-size:clamp(54px,15vw,110px)">${a} − ${b}</div>`;
+    setBubble('Ile zostanie?'); say(`Ile to jest ${nw(a)} minus ${nw(b)}?`);
+    let s=new Set([res]); while(s.size<3)s.add(clamp(res+(rnd(5)-2),0,9));
+    renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===res,speak:nw(x)})), ()=>say(`Tak! Zostanie ${nw(res)}`));
+  }else{ const a=1+rnd(5), b=1+rnd(5), sum=a+b;
+    promptArea().innerHTML=`<div class="prompt-big" style="font-size:clamp(46px,13vw,96px)">${a} + ❓ = ${sum}</div>`;
+    setBubble('Ile brakuje?'); say(`${nw(a)} plus ile równa się ${nw(sum)}?`);
+    let s=new Set([b]); while(s.size<3)s.add(clamp(b+(rnd(5)-2),1,9));
+    renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===b,speak:nw(x)})), ()=>say(`Tak! Brakuje ${nw(b)}`));
+  }
+}
+function roundLogic(d){
+  const variants=['oddcolor']; if(d>=3)variants.push('oddshape'); if(d>=5)variants.push('pattern'); if(d>=8)variants.push('oddcat');
+  const v=pick(variants), nOpt=d>=6?4:3;
+  if(v==='oddcolor'){ const cols=shuffle(COLORS), base=cols[0], odd=cols[1], sh=pick(SHAPES);
+    setBubble('Który jest inny?'); say('Który jest inny? Dotknij tego, który nie pasuje.'); promptArea().innerHTML='';
+    const arr=[{c:odd,k:1}]; for(let i=0;i<nOpt-1;i++)arr.push({c:base,k:0});
+    renderOptions(shuffle(arr).map(o=>({html:shapeSVG(sh,o.c[1]),cls:'shape',correct:!!o.k,speak:o.c[0]})), ()=>say('Tak! Ten był inny.'));
+  }else if(v==='oddshape'){ const col=pick(COLORS)[1], sh=shuffle(SHAPES);
+    setBubble('Który kształt jest inny?'); say('Który kształt jest inny?'); promptArea().innerHTML='';
+    const arr=[{s:sh[1],k:1}]; for(let i=0;i<nOpt-1;i++)arr.push({s:sh[0],k:0});
+    renderOptions(shuffle(arr).map(o=>({html:shapeSVG(o.s,col),cls:'shape',correct:!!o.k})), ()=>say('Świetnie!'));
+  }else if(v==='pattern'){ const cols=shuffle(COLORS).slice(0,2), sh=pick(SHAPES), len=d>=14?6:4;
+    const seq=[]; for(let i=0;i<len;i++)seq.push(cols[i%2]); const next=cols[len%2];
+    promptArea().innerHTML=`<div style="display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap">`
+      +seq.map(c=>`<div style="width:clamp(34px,8vw,60px)">${shapeSVG(sh,c[1])}</div>`).join('')
+      +`<div style="font-size:clamp(32px,8vw,60px);font-weight:700;color:var(--gold-d)">❓</div></div>`;
+    setBubble('Co jest dalej?'); say('Popatrz na wzór. Co jest dalej?');
+    renderOptions(shuffle([{c:next,k:1},{c:cols[(len+1)%2],k:0}]).map(o=>({html:shapeSVG(sh,o.c[1]),cls:'shape',correct:!!o.k,speak:o.c[0]})), ()=>say('Brawo! Zgadłaś wzór.'));
+  }else{ const ck=shuffle(CAT_KEYS), main=ck[0], oddC=ck[1], mains=shuffle(CATEGORIES[main]).slice(0,nOpt-1), odd=pick(CATEGORIES[oddC]);
+    setBubble('Co tu nie pasuje?'); say('Co tu nie pasuje? Dotknij tego, co jest inne.'); promptArea().innerHTML='';
+    renderOptions(shuffle([{e:odd,k:1},...mains.map(e=>({e,k:0}))]).map(o=>({html:o.e,cls:'pic',correct:!!o.k})), ()=>say('Tak! To nie pasowało.'));
+  }
+}
+
+/* ---------- Prawda / Fałsz: baza ciekawostek ---------- */
+const TF_EMOJI={ zwierzęta:'🐾', natura:'🌿', ciało:'🧒', kosmos:'🚀', jedzenie:'🍎',
+  pojazdy:'🚗', kolory:'🎨', pogoda:'🌦️', dom:'🏠', zawody:'👩‍🚒', nauka:'🧠' };
+const FACTS=[
+  {c:'zwierzęta',q:'Krowa daje nam mleko.',t:true,e:'Tak! Od krów dostajemy mleko, a z niego ser i jogurt.'},
+  {c:'zwierzęta',q:'Ryby potrafią latać w powietrzu jak ptaki.',t:false,e:'Nie. Ryby pływają w wodzie i oddychają skrzelami.'},
+  {c:'zwierzęta',q:'Pszczoły robią miód.',t:true,e:'Tak! Pszczoły zbierają nektar z kwiatów i robią z niego miód.'},
+  {c:'zwierzęta',q:'Słoń jest malutki jak myszka.',t:false,e:'Nie. Słoń jest jednym z największych zwierząt na świecie!'},
+  {c:'zwierzęta',q:'Ptaki mają pióra.',t:true,e:'Tak! Pióra pomagają ptakom latać i chronią je przed zimnem.'},
+  {c:'zwierzęta',q:'Wąż ma cztery nogi.',t:false,e:'Nie. Wąż nie ma nóg — pełza po ziemi.'},
+  {c:'zwierzęta',q:'Żaba potrafi skakać.',t:true,e:'Tak! Żaba ma silne tylne nogi i daleko skacze.'},
+  {c:'zwierzęta',q:'Kura znosi jajka.',t:true,e:'Tak! Z kurzych jajek robimy np. jajecznicę.'},
+  {c:'natura',q:'Słońce świeci w dzień.',t:true,e:'Tak! Słońce daje nam światło i ciepło za dnia.'},
+  {c:'natura',q:'Śnieg jest gorący.',t:false,e:'Nie. Śnieg jest zimny — robi się z zamarzniętej wody.'},
+  {c:'natura',q:'Deszcz pada z chmur.',t:true,e:'Tak! Woda zbiera się w chmurach i spada jako deszcz.'},
+  {c:'natura',q:'Ogień jest zimny i można go dotknąć.',t:false,e:'Nie! Ogień jest bardzo gorący i parzy — nie wolno go dotykać.'},
+  {c:'natura',q:'Drzewa rosną w górę.',t:true,e:'Tak! Drzewa rosną do góry, a korzenie w dół.'},
+  {c:'natura',q:'Woda w morzu jest słona.',t:true,e:'Tak! Dlatego morska woda nie smakuje jak ta z kranu.'},
+  {c:'natura',q:'Tęcza jest czarno-biała.',t:false,e:'Nie. Tęcza ma wiele kolorów, np. czerwony, żółty i niebieski.'},
+  {c:'ciało',q:'Mamy dwoje oczu.',t:true,e:'Tak! Dwoje oczu pomaga nam dobrze widzieć.'},
+  {c:'ciało',q:'Nosem czujemy zapachy.',t:true,e:'Tak! Nosem wąchamy np. kwiaty i jedzenie.'},
+  {c:'ciało',q:'Człowiek ma trzy ręce.',t:false,e:'Nie. Mamy dwie ręce i dwie nogi.'},
+  {c:'ciało',q:'Uszami słyszymy dźwięki.',t:true,e:'Tak! Uszami słuchamy muzyki i głosów.'},
+  {c:'ciało',q:'Zęby służą do gryzienia jedzenia.',t:true,e:'Tak! Dlatego trzeba je myć, żeby były zdrowe.'},
+  {c:'ciało',q:'Serce bije w stopie.',t:false,e:'Nie. Serce bije w klatce piersiowej.'},
+  {c:'kosmos',q:'Słońce to gwiazda.',t:true,e:'Tak! Słońce to wielka, gorąca gwiazda.'},
+  {c:'kosmos',q:'Na nocnym niebie widać gwiazdy.',t:true,e:'Tak! W nocy niebo jest pełne małych, świecących gwiazd.'},
+  {c:'kosmos',q:'Rakieta lata w kosmos.',t:true,e:'Tak! Rakiety wynoszą astronautów w kosmos.'},
+  {c:'kosmos',q:'Ziemia jest płaska jak naleśnik.',t:false,e:'Nie. Ziemia jest okrągła, jak wielka piłka.'},
+  {c:'kosmos',q:'Księżyc widać czasem w nocy.',t:true,e:'Tak! Księżyc świeci na nocnym niebie.'},
+  {c:'jedzenie',q:'Marchewka jest warzywem.',t:true,e:'Tak! Marchewka jest zdrowa i pomarańczowa.'},
+  {c:'jedzenie',q:'Banan jest niebieski.',t:false,e:'Nie. Dojrzały banan jest żółty.'},
+  {c:'jedzenie',q:'Chleb robi się z mąki.',t:true,e:'Tak! Z mąki i wody piecze się chleb.'},
+  {c:'jedzenie',q:'Cytryna jest słodka jak cukierek.',t:false,e:'Nie. Cytryna jest bardzo kwaśna.'},
+  {c:'jedzenie',q:'Owoce i warzywa są zdrowe.',t:true,e:'Tak! Dają nam siłę i witaminy.'},
+  {c:'jedzenie',q:'Lody są gorące.',t:false,e:'Nie. Lody są zimne — dlatego się rozpuszczają w cieple.'},
+  {c:'zwierzęta',q:'Kot mówi „miau".',t:true,e:'Tak! Kot miauczy: miau, miau.'},
+  {c:'zwierzęta',q:'Kogut robi „kukuryku".',t:true,e:'Tak! Kogut pieje rano: kukuryku!'},
+  {c:'zwierzęta',q:'Pies macha ogonem, gdy się cieszy.',t:true,e:'Tak! Machanie ogonem to znak radości psa.'},
+  {c:'zwierzęta',q:'Pingwin mieszka tam, gdzie jest ciepło i piaszczysto.',t:false,e:'Nie. Pingwiny lubią zimno i lód.'},
+  {c:'zwierzęta',q:'Zając ma długie uszy.',t:true,e:'Tak! Długie uszy pomagają mu dobrze słyszeć.'},
+  {c:'zwierzęta',q:'Ślimak jest bardzo szybki.',t:false,e:'Nie. Ślimak porusza się powoli i nosi domek na grzbiecie.'},
+  {c:'zwierzęta',q:'Kaczka potrafi pływać.',t:true,e:'Tak! Kaczka pływa po wodzie i robi „kwa kwa".'},
+  {c:'zwierzęta',q:'Motyl ma kolorowe skrzydła.',t:true,e:'Tak! Motyle mają piękne, kolorowe skrzydełka.'},
+  {c:'zwierzęta',q:'Sowa najczęściej śpi w nocy.',t:false,e:'Nie. Sowa jest aktywna w nocy, a śpi w dzień.'},
+  {c:'zwierzęta',q:'Krowa potrafi latać.',t:false,e:'Nie. Krowa chodzi po łące, nie lata.'},
+  {c:'natura',q:'Latem liście na drzewach są zielone.',t:true,e:'Tak! Latem drzewa mają zielone liście.'},
+  {c:'natura',q:'Zimą często pada śnieg.',t:true,e:'Tak! Zimą jest zimno i pada biały śnieg.'},
+  {c:'natura',q:'Kwiaty wyrastają z nasionek.',t:true,e:'Tak! Z małego nasionka wyrasta kwiatek.'},
+  {c:'natura',q:'Trawa jest niebieska.',t:false,e:'Nie. Trawa jest zielona.'},
+  {c:'natura',q:'Kamień jest miękki jak poduszka.',t:false,e:'Nie. Kamień jest twardy.'},
+  {c:'natura',q:'Wiatr potrafi poruszać liśćmi.',t:true,e:'Tak! Wiatr kołysze drzewa i liście.'},
+  {c:'natura',q:'W nocy robi się ciemno.',t:true,e:'Tak! Gdy słońce zachodzi, robi się ciemno.'},
+  {c:'ciało',q:'Włosy rosną nam na głowie.',t:true,e:'Tak! Dlatego czasem idziemy do fryzjera.'},
+  {c:'ciało',q:'Rękami możemy klaskać.',t:true,e:'Tak! Klap, klap — klaszczemy rękami.'},
+  {c:'ciało',q:'Językiem czujemy smak.',t:true,e:'Tak! Język czuje, czy coś jest słodkie czy kwaśne.'},
+  {c:'ciało',q:'Mamy dziesięć palców u rąk.',t:true,e:'Tak! Pięć i pięć — razem dziesięć palców.'},
+  {c:'ciało',q:'Oczami słyszymy dźwięki.',t:false,e:'Nie. Oczami widzimy, a słyszymy uszami.'},
+  {c:'ciało',q:'Gdy jesteśmy bardzo zmęczeni, idziemy spać.',t:true,e:'Tak! Sen daje nam siłę na nowy dzień.'},
+  {c:'kosmos',q:'W kosmosie jest bardzo dużo gwiazd.',t:true,e:'Tak! Na niebie są miliony gwiazd.'},
+  {c:'kosmos',q:'Słońce wschodzi rano.',t:true,e:'Tak! Rano słońce pojawia się na niebie.'},
+  {c:'kosmos',q:'Księżyc jest kwadratowy.',t:false,e:'Nie. Księżyc jest okrągły.'},
+  {c:'kosmos',q:'Astronauta zakłada specjalny skafander.',t:true,e:'Tak! W kosmosie astronauta nosi skafander i hełm.'},
+  {c:'jedzenie',q:'Jabłko rośnie na drzewie.',t:true,e:'Tak! Jabłka rosną na jabłoni.'},
+  {c:'jedzenie',q:'Mleko jest czarne.',t:false,e:'Nie. Mleko jest białe.'},
+  {c:'jedzenie',q:'Woda gasi pragnienie.',t:true,e:'Tak! Gdy chce nam się pić, pijemy wodę.'},
+  {c:'jedzenie',q:'Trzeba myć ręce przed jedzeniem.',t:true,e:'Tak! Mycie rąk chroni przed zarazkami.'},
+  {c:'jedzenie',q:'Czekolada jest warzywem.',t:false,e:'Nie. Czekolada to słodycz, a nie warzywo.'},
+  {c:'jedzenie',q:'Pomidor jest czerwony.',t:true,e:'Tak! Dojrzały pomidor jest czerwony.'},
+  {c:'pojazdy',q:'Samochód jeździ po drodze.',t:true,e:'Tak! Samochód ma koła i jeździ po drodze.'},
+  {c:'pojazdy',q:'Samolot lata w powietrzu.',t:true,e:'Tak! Samolot ma skrzydła i lata wysoko.'},
+  {c:'pojazdy',q:'Statek pływa po wodzie.',t:true,e:'Tak! Statki i łódki pływają po wodzie.'},
+  {c:'pojazdy',q:'Rower ma dwa koła.',t:true,e:'Tak! Na rowerze jedziemy, pedałując nogami.'},
+  {c:'pojazdy',q:'Pociąg jeździ po szynach.',t:true,e:'Tak! Pociąg jedzie po szynach: tuf, tuf!'},
+  {c:'pojazdy',q:'Samochód pływa pod wodą jak ryba.',t:false,e:'Nie. Samochód jeździ po drodze, nie pływa.'},
+  {c:'kolory',q:'Niebo w słoneczny dzień jest niebieskie.',t:true,e:'Tak! W dzień niebo jest niebieskie.'},
+  {c:'kolory',q:'Śnieg jest biały.',t:true,e:'Tak! Świeży śnieg jest biały.'},
+  {c:'kolory',q:'Banan jest żółty.',t:true,e:'Tak! Dojrzały banan jest żółty.'},
+  {c:'kolory',q:'Truskawka jest czarna.',t:false,e:'Nie. Truskawka jest czerwona.'},
+  {c:'kolory',q:'Trawa jest zielona.',t:true,e:'Tak! Trawa na łące jest zielona.'},
+  {c:'pogoda',q:'Gdy pada deszcz, bierzemy parasol.',t:true,e:'Tak! Parasol chroni nas przed deszczem.'},
+  {c:'pogoda',q:'Latem jest ciepło.',t:true,e:'Tak! Latem świeci słońce i jest ciepło.'},
+  {c:'pogoda',q:'Śnieg pada latem na plaży.',t:false,e:'Nie. Śnieg pada zimą, gdy jest zimno.'},
+  {c:'pogoda',q:'Po burzy czasem widać tęczę.',t:true,e:'Tak! Po deszczu i słońcu pojawia się tęcza.'},
+  {c:'dom',q:'W łóżku śpimy.',t:true,e:'Tak! W łóżku odpoczywamy i śpimy.'},
+  {c:'dom',q:'Zęby myjemy szczoteczką.',t:true,e:'Tak! Szczoteczką i pastą myjemy zęby.'},
+  {c:'dom',q:'Buty zakładamy na ręce.',t:false,e:'Nie. Buty zakładamy na nogi.'},
+  {c:'dom',q:'W lodówce jedzenie dłużej jest świeże.',t:true,e:'Tak! Lodówka chłodzi i chroni jedzenie.'},
+  {c:'dom',q:'Lampa daje światło.',t:true,e:'Tak! Lampę włączamy, gdy jest ciemno.'},
+  {c:'zawody',q:'Lekarz pomaga, gdy jesteśmy chorzy.',t:true,e:'Tak! Lekarz leczy i dba o nasze zdrowie.'},
+  {c:'zawody',q:'Strażak gasi pożary.',t:true,e:'Tak! Strażak gasi ogień i pomaga ludziom.'},
+  {c:'zawody',q:'Kucharz gotuje jedzenie.',t:true,e:'Tak! Kucharz przygotowuje pyszne posiłki.'},
+  {c:'zawody',q:'Listonosz przynosi listy i paczki.',t:true,e:'Tak! Listonosz dostarcza pocztę do domów.'},
+  {c:'zawody',q:'Nauczyciel śpi cały dzień zamiast uczyć.',t:false,e:'Nie. Nauczyciel uczy dzieci nowych rzeczy.'},
+  {c:'zwierzęta',q:'Delfin to ryba.',t:false,d:2,e:'Nie. Delfin to ssak — wypływa na powierzchnię, by zaczerpnąć powietrza.'},
+  {c:'zwierzęta',q:'Nietoperz lata, ale nie jest ptakiem.',t:true,d:2,e:'Tak! Nietoperz to ssak, choć ma skrzydła i potrafi latać.'},
+  {c:'zwierzęta',q:'Pająk jest owadem.',t:false,d:2,e:'Nie. Pająk ma osiem nóg, a owady mają sześć.'},
+  {c:'zwierzęta',q:'Motyl najpierw jest gąsienicą.',t:true,d:2,e:'Tak! Gąsienica zamienia się w pięknego motyla.'},
+  {c:'zwierzęta',q:'Żaba na początku życia jest kijanką.',t:true,d:2,e:'Tak! Kijanka mieszka w wodzie i z czasem staje się żabą.'},
+  {c:'zwierzęta',q:'Zimą niedźwiedź zapada w sen zimowy.',t:true,d:2,e:'Tak! Śpi, gdy jest zimno i trudno o jedzenie.'},
+  {c:'zwierzęta',q:'Wielbłąd ma garb z zapasem na trudne dni.',t:true,d:2,e:'Tak! Garb pomaga mu przetrwać na pustyni.'},
+  {c:'zwierzęta',q:'Dinozaury żyją dziś w pobliskim lesie.',t:false,d:2,e:'Nie. Dinozaury wyginęły bardzo, bardzo dawno temu.'},
+  {c:'zwierzęta',q:'Wieloryb jest większy od słonia.',t:true,d:2,e:'Tak! Wieloryb to największe zwierzę na Ziemi.'},
+  {c:'kosmos',q:'Ziemia krąży wokół Słońca.',t:true,d:2,e:'Tak! Ziemia okrąża Słońce przez cały rok.'},
+  {c:'kosmos',q:'Księżyc świeci własnym światłem.',t:false,d:2,e:'Nie. Księżyc odbija światło Słońca.'},
+  {c:'kosmos',q:'Słońce jest dużo większe od Ziemi.',t:true,d:2,e:'Tak! Słońce to ogromna gwiazda.'},
+  {c:'natura',q:'Lód pływa po wodzie i nie tonie.',t:true,d:2,e:'Tak! Dlatego góry lodowe unoszą się na morzu.'},
+  {c:'natura',q:'Drzewo iglaste ma igły zamiast liści.',t:true,d:2,e:'Tak! Np. sosna i świerk — zielone nawet zimą.'},
+  {c:'natura',q:'Rośliny potrzebują światła, żeby rosnąć.',t:true,d:2,e:'Tak! Dlatego kwiaty zwracają się ku słońcu.'},
+  {c:'natura',q:'Magnes przyciąga metalowe rzeczy.',t:true,d:2,e:'Tak! Przyciąga np. spinacze i gwoździe.'},
+  {c:'natura',q:'Cień powstaje, gdy coś zasłania światło.',t:true,d:2,e:'Tak! W słońcu twoje ciało rzuca cień.'},
+  {c:'ciało',q:'Serce pompuje krew po całym ciele.',t:true,d:2,e:'Tak! Serce bije i rozprowadza krew.'},
+  {c:'ciało',q:'Krew w naszym ciele jest niebieska.',t:false,d:2,e:'Nie. Krew jest czerwona.'},
+  {c:'ciało',q:'Kości tworzą szkielet, który trzyma ciało.',t:true,d:2,e:'Tak! Kości są twarde i nas podtrzymują.'},
+  {c:'nauka',q:'Tydzień ma siedem dni.',t:true,d:2,e:'Tak! Od poniedziałku do niedzieli — siedem dni.'},
+  {c:'nauka',q:'Rok ma cztery pory roku.',t:true,d:2,e:'Tak! Wiosna, lato, jesień i zima.'},
+  {c:'nauka',q:'Trójkąt ma trzy boki.',t:true,d:2,e:'Tak! „Trój" znaczy trzy.'},
+  {c:'nauka',q:'Liczba 10 jest mniejsza niż 5.',t:false,d:2,e:'Nie. 10 jest większe niż 5.'},
+  {c:'nauka',q:'Po wtorku jest środa.',t:true,d:2,e:'Tak! Poniedziałek, wtorek, środa…'},
+  {c:'nauka',q:'Tęcza zawsze ma kolory w tej samej kolejności.',t:true,d:2,e:'Tak! Na górze czerwony, na dole fioletowy.'},
+];
+function roundTrueFalse(d){
+  locked=false; if(!levelState.usedTF)levelState.usedTF=new Set();
+  const hard=levelState.n>=6, pool=FACTS.filter(x=>hard||(x.d||1)===1);
+  let f,tries=0; do{ f=pick(pool); }while(levelState.usedTF.has(f.q)&&++tries<25);
+  levelState.usedTF.add(f.q);
+  promptArea().innerHTML=`<div class="tf-emoji">${TF_EMOJI[f.c]||'❓'}</div><div class="tf-q">${f.q}</div>`;
+  setBubble('Prawda czy fałsz?'); say(f.q);
+  const el=optionsEl(); el.innerHTML='';
+  const bt=document.createElement('button'); bt.className='opt tf-true'; bt.textContent='✅ PRAWDA';
+  const bf=document.createElement('button'); bf.className='opt tf-false'; bf.textContent='❌ FAŁSZ';
+  el.appendChild(bt); el.appendChild(bf);
+  function answer(val,btn){ if(locked)return; locked=true; bt.disabled=true; bf.disabled=true;
+    const ok=val===f.t;
+    if(ok){ btn.classList.add('right'); emiHappy(); setBubble(pick(PRAISE)); dayRec().correct++; confetti(); }
+    else{ btn.classList.add('wrong'); (f.t?bt:bf).classList.add('right'); levelState.wrong++; dayRec().wrong++; setBubble('Ojej!'); }
+    save();
+    const verdict=f.t?'To PRAWDA.':'To FAŁSZ.';
+    promptArea().innerHTML+=`<div class="tf-exp"><b>${ok?'Dobrze! ':''}${verdict}</b><br>${f.e}</div>`;
+    say((ok?pick(PRAISE)+' ':'Ojej. ')+verdict+' '+f.e);
+    const nb=document.createElement('button'); nb.className='opt tf-next'; nb.textContent='Dalej ▶'; nb.onclick=()=>advance(); el.appendChild(nb);
+  }
+  bt.onclick=()=>answer(true,bt); bf.onclick=()=>answer(false,bf);
+}
+
+/* ---------- Level mode ---------- */
+let levelState=null, locked=false;
+function setBubble(t){ bubble().textContent=t; }
+function startLevel(cat,n){ levelState={cat,n,qi:0,wrong:0}; show('game'); $('backBtn').onclick=()=>openMap(cat);
+  const names={letters:'Literki',numbers:'Liczby',logic:'Zagadki',truefalse:'Prawda/Fałsz'};
+  $('lvlLabel').textContent=names[cat]+' • Poziom '+n+'  '; updatePips();
+  const intro='Poziom '+n+'! Dasz radę!'; setBubble(intro); say(intro); setTimeout(nextRound,650);
+}
+function updatePips(){ let h=''; for(let i=0;i<QPL;i++)h+=`<span class="pip${i<levelState.qi?' on':''}"></span>`; $('pips').innerHTML=h; }
+function nextRound(){ const c=levelState.cat,d=levelState.n;
+  c==='letters'?roundLetters(d):c==='numbers'?roundNumbers(d):c==='logic'?roundLogic(d):roundTrueFalse(d); }
+function markCorrect(onCorrect){ locked=true; emiHappy(); const p=pick(PRAISE); setBubble(p); say(p);
+  if(onCorrect)setTimeout(onCorrect,500); dayRec().correct++; save(); confetti(); setTimeout(advance,1050); }
+function markWrong(){ levelState.wrong++; dayRec().wrong++; save(); const t=pick(TRY); setBubble(t); say(t); }
+function renderOptions(items,onCorrect){
+  locked=false; const el=optionsEl(); el.innerHTML='';
+  items.forEach(it=>{ const b=document.createElement('button'); b.className='opt '+(it.cls||''); b.innerHTML=it.html;
+    b.onclick=()=>{ if(locked)return; if(it.speak)say(it.speak);
+      if(it.correct){ b.classList.add('right'); markCorrect(onCorrect); }
+      else{ b.classList.add('wrong'); b.disabled=true; markWrong(); }
+    }; el.appendChild(b); });
+}
+/* pisanie: wpisz brakującą literę ('missing') lub napisz słowo z obrazka ('spell') */
+function renderType(emoji,word,mode){
+  locked=false; const up=word.toUpperCase().split('');
+  const miss = mode==='missing' ? rnd(up.length) : -1;
+  let pos = mode==='spell' ? 0 : miss;
+  const filled = up.map((ch,i)=> mode==='spell' ? '' : (i===miss?'':ch));
+  function drawSlots(){
+    promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(54px,15vw,116px)">${emoji}</div>`
+      +`<div class="type-word">`+up.map((ch,i)=>{ const val=filled[i];
+        const cls='slot'+(val===''&&i===pos?' active':'')+(val===''&&i===miss?' miss':'');
+        return `<div class="${cls}">${val}</div>`; }).join('')+`</div>`;
+  }
+  let keys;
+  if(mode==='missing'){ const pool=LETTERS_ORD.filter(l=>l!==up[miss]); keys=shuffle([up[miss],...shuffle(pool).slice(0,5)]);
+    setBubble('Wpisz brakującą literę'); say('Wpisz brakującą literę w słowie '+word); }
+  else{ const ul=uniqueLetters(word), pool=LETTERS_ORD.filter(l=>!ul.includes(l)); keys=shuffle([...ul,...shuffle(pool).slice(0,Math.min(4,pool.length))]);
+    setBubble('Napisz słowo!'); say('Napisz słowo '+word); }
+  drawSlots();
+  const el=optionsEl();
+  el.innerHTML=`<div class="kbd">`+keys.map(k=>`<button class="key" data-k="${k}">${k}</button>`).join('')+`</div>`;
+  el.querySelectorAll('.key').forEach(b=>{ b.onclick=()=>{ if(locked)return; const k=b.dataset.k, need=up[pos]; say(k);
+    if(k===need){ filled[pos]=k;
+      if(mode==='spell'){ pos++; while(pos<up.length&&filled[pos]!=='')pos++; }
+      drawSlots();
+      if(filled.every(x=>x!=='')) markCorrect(()=>say(word+'!'));
+    } else { b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),400); markWrong(); } }; });
+}
+function advance(){ levelState.qi++; updatePips(); if(levelState.qi>=QPL) finishLevel(); else nextRound(); }
+function emiHappy(){ const e=$('emiGame'); e.classList.remove('happy'); void e.offsetWidth; e.classList.add('happy'); }
+
+function finishLevel(){
+  const {cat,n,wrong}=levelState;
+  const rating= wrong===0?3 : wrong<=2?2:1;       // 1-3 gwiazdki za zadanie
+  const prev=state.progress[cat][n]||0;
+  const gained=Math.max(0, rating-prev);          // przyznaj tylko nadwyżkę (anty-farmienie)
+  if(rating>prev)state.progress[cat][n]=rating;
+  if(gained>0)gainStars(gained);
+  dayRec().levels++; const r=dayRec(); r.stars=(r.stars||0)+gained;
+  save(); checkAch();
+  const next=n+1, hasNext=next<=TOTAL;
+  $('levelDone').innerHTML=`<div class="ld-card"><h2>Poziom ukończony!</h2>
+    <div class="ld-stars">${'⭐'.repeat(rating)}${'<i>⭐</i>'.repeat(3-rating)}</div>
+    <div class="ld-sub">${rating===3?'Bezbłędnie! 🏅':'Świetna robota!'}${gained>0?'  +'+gained+' ⭐':' (rekord już zdobyty)'}</div>
+    <div class="ld-btns"><button class="ld-btn ld-map">🗺️ Mapa</button>${hasNext?'<button class="ld-btn ld-next">Następny ▶</button>':''}</div></div>`;
+  $('levelDone').classList.add('on');
+  say(rating===3?'Wow! Bezbłędnie! Trzy gwiazdki!':'Brawo! Poziom ukończony!');
+  $('levelDone').querySelector('.ld-map').onclick=()=>{ $('levelDone').classList.remove('on'); openMap(cat); };
+  const nx=$('levelDone').querySelector('.ld-next'); if(nx)nx.onclick=()=>{ $('levelDone').classList.remove('on'); startLevel(cat,next); };
+}
+
+/* ---------- Map ---------- */
+const CATCLASS={letters:'lt',numbers:'nu',logic:'lo',truefalse:'tf'};
+function maxDone(cat){ let m=0; for(const k in state.progress[cat])if(+k>m)m=+k; return m; }
+function curLevel(cat){ return clamp(maxDone(cat)+1,1,TOTAL); }
+function openMap(cat){ show('map'); renderMap(cat); }
+function renderMap(cat){
+  const names={letters:'🔤 Mapa Literek',numbers:'🔢 Mapa Liczb',logic:'🧩 Mapa Zagadek',truefalse:'🤔 Prawda czy Fałsz'};
+  const tints={letters:'rgba(255,77,157,.07)',numbers:'rgba(43,179,240,.08)',logic:'rgba(155,89,230,.08)',truefalse:'rgba(52,214,192,.09)'};
+  $('mapTitle').textContent=names[cat]; $('mapScroll').style.background=tints[cat];
+  $('mapBubble').textContent=maxDone(cat)>=TOTAL?'Mapa ukończona! 🎉':'Wybierz poziom!';
+  const inner=$('mapInner'), stepY=100, padTop=64, padBot=80, H=padTop+(TOTAL-1)*stepY+padBot; inner.style.height=H+'px';
+  const cur=curLevel(cat), cc=CATCLASS[cat];
+  const pos=[]; for(let i=0;i<TOTAL;i++)pos.push({x:50+Math.sin(i*0.7)*30,y:padTop+i*stepY});
+  let path='M '+pos[0].x+' '+pos[0].y; for(let i=1;i<TOTAL;i++)path+=' L '+pos[i].x+' '+pos[i].y;
+  let html=`<svg class="trail" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="#d9cdf0" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 5" vector-effect="non-scaling-stroke"/></svg>`;
+  for(let i=0;i<TOTAL;i++){ const n=i+1, st=state.progress[cat][n]||0;
+    let cls,inside='';
+    if(st>0){ cls='node done '+cc; inside=n; }
+    else if(n===cur){ cls='node cur '+cc; inside=n; }
+    else if(UNLOCK_ALL){ cls='node '+cc; inside=n; }
+    else { cls='node lock'; inside='🔒'; }
+    const stars= st>0?`<span class="ls">${'★'.repeat(st)}${'<i>★</i>'.repeat(3-st)}</span>`:'';
+    const flag= n===cur?'<span class="startflag">START</span>':'';
+    const crown= n===TOTAL?'<span class="lp">👑</span>':'';
+    html+=`<button class="${cls}" data-n="${n}" style="left:${pos[i].x}%;top:${pos[i].y}px">${flag}${crown}${inside}${stars}</button>`;
+  }
+  inner.innerHTML=html;
+  inner.querySelectorAll('.node').forEach(b=>{ const n=+b.dataset.n;
+    b.onclick=()=>{ if(n<=cur||UNLOCK_ALL){ unlockAudio(); startLevel(cat,n); } else { toast('🔒 Najpierw ukończ poprzednie'); say('Najpierw ukończ poprzednie poziomy'); } }; });
+  setTimeout(()=>{ const c=inner.querySelector('.node.cur')||inner.querySelector('.node.done'); if(c)c.scrollIntoView({block:'center'}); },60);
+}
+
+/* ---------- Stats ---------- */
+function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dayRec(){ const t=today(); state.stats[t]=state.stats[t]||{correct:0,wrong:0,stars:0,levels:0}; return state.stats[t]; }
+const WD=['Nd','Pn','Wt','Śr','Cz','Pt','So'];
+function last7(){ const out=[], d=new Date(); for(let i=6;i>=0;i--){ const dd=new Date(d); dd.setDate(d.getDate()-i);
+  const key=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0');
+  out.push({key,label:WD[dd.getDay()],rec:state.stats[key]||{correct:0,stars:0,levels:0}}); } return out; }
+function renderStats(){
+  const t=dayRec(), week=last7();
+  const wStars=week.reduce((a,b)=>a+b.rec.stars,0), wLevels=week.reduce((a,b)=>a+b.rec.levels,0), wCorrect=week.reduce((a,b)=>a+b.rec.correct,0);
+  const compl=completedCount(), mx=Math.max(1,...week.map(w=>w.rec.stars));
+  $('statsBody').innerHTML=`
+    <div class="panel-title" style="color:var(--blue)">Dziś</div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="v">${t.stars}</div><div class="k">⭐ gwiazdek</div></div>
+      <div class="stat-card"><div class="v">${t.correct}</div><div class="k">✅ poprawnych</div></div>
+      <div class="stat-card"><div class="v">${t.levels}</div><div class="k">🎯 poziomów</div></div></div>
+    <div class="panel-title" style="color:var(--blue)">Ten tydzień</div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="v">${wStars}</div><div class="k">⭐ razem</div></div>
+      <div class="stat-card"><div class="v">${wCorrect}</div><div class="k">✅ poprawnych</div></div>
+      <div class="stat-card"><div class="v">${wLevels}</div><div class="k">🎯 poziomów</div></div></div>
+    <div class="bars-wrap"><div class="bars">${week.map(w=>{ const h=Math.round((w.rec.stars/mx)*120);
+      return `<div class="bar" style="height:${Math.max(3,h)}px"><span class="bv">${w.rec.stars||''}</span><span class="bl">${w.label}</span></div>`; }).join('')}</div></div>
+    <div class="stat-cards"><div class="stat-card"><div class="v">${compl}/${TOTAL*CAT_KEYS_C.length}</div><div class="k">🗺️ poziomów ukończonych</div></div>
+      <div class="stat-card"><div class="v">${state.stars}</div><div class="k">⭐ łącznie</div></div></div>`;
+}
+
+/* ---------- Achievements ---------- */
+const CAT_KEYS_C=['letters','numbers','logic','truefalse'];
+function completedCount(){ return CAT_KEYS_C.reduce((a,c)=>a+Object.keys(state.progress[c]).length,0); }
+function mapDone(c){ return Object.keys(state.progress[c]).length>=TOTAL; }
+function hasPerfect(){ return CAT_KEYS_C.some(c=>Object.values(state.progress[c]).some(v=>v>=3)); }
+const ACH=[
+  {id:'first',ic:'⭐',t:'Pierwszy krok',d:'Zdobądź 1 gwiazdkę',cond:s=>s.stars>=1},
+  {id:'s25',ic:'🌟',t:'Zbieraczka',d:'25 gwiazdek',cond:s=>s.stars>=25},
+  {id:'s100',ic:'💫',t:'Mistrzyni gwiazd',d:'100 gwiazdek',cond:s=>s.stars>=100},
+  {id:'lvl5',ic:'🚀',t:'Wspinaczka',d:'Ukończ 5 poziomów',cond:s=>completedCount()>=5},
+  {id:'lvl20',ic:'🧗',t:'Wytrwała',d:'Ukończ 20 poziomów',cond:s=>completedCount()>=20},
+  {id:'mapL',ic:'🔤',t:'Mistrz Liter',d:'Ukończ mapę Literek',cond:s=>mapDone('letters')},
+  {id:'mapN',ic:'🔢',t:'Mistrz Liczb',d:'Ukończ mapę Liczb',cond:s=>mapDone('numbers')},
+  {id:'mapG',ic:'🧩',t:'Mistrz Zagadek',d:'Ukończ mapę Zagadek',cond:s=>mapDone('logic')},
+  {id:'perfect',ic:'🏅',t:'Bezbłędnie',d:'Zdobądź 3 gwiazdki na poziomie',cond:s=>hasPerfect()},
+  {id:'styler',ic:'👗',t:'Modnisia',d:'Zmień wygląd w Szatni',cond:s=>s.styleChanged},
+  {id:'pet',ic:'🐾',t:'Przyjaciel',d:'Wybierz zwierzaka',cond:s=>s.pet&&s.pet!=='none'},
+  {id:'days3',ic:'🔥',t:'Trzy dni',d:'Graj w 3 różne dni',cond:s=>Object.keys(s.stats||{}).length>=3},
+];
+function checkAch(){ ACH.forEach(a=>{ if(!state.ach[a.id]&&a.cond(state)){ state.ach[a.id]=true; save();
+  toast('🏆 Osiągnięcie: '+a.t); say('Nowe osiągnięcie! '+a.t); } }); }
+function renderAch(){ $('achGrid').innerHTML=ACH.map(a=>{ const got=!!state.ach[a.id];
+  return `<div class="ach-item${got?'':' locked'}"><div class="ai">${got?a.ic:'🔒'}</div><div><div class="at">${a.t}</div><div class="ad">${a.d}</div></div></div>`; }).join(''); }
+
+/* ---------- Stars ---------- */
+function gainStars(n){ const old=state.stars; state.stars+=n; save(); updateStarUI(); checkUnlocks(old); checkAch();
+  const r=$('reward'); r.classList.add('on'); setTimeout(()=>r.classList.remove('on'),700); }
+function updateStarUI(){ document.querySelectorAll('.starN').forEach(e=>e.textContent=state.stars); $('topStars').textContent='⭐ '+state.stars; }
+function checkUnlocks(old){ [...Object.values(BG),...Object.values(PETS),...Object.values(HAIR)].forEach(v=>{
+  if(v.need>0&&old<v.need&&state.stars>=v.need){ toast('🎉 Odblokowano w Szatni: '+v.name+'!'); say('Hura! Odblokowałaś '+v.name+'!'); } }); }
+let toastT=null; function toast(m){ const el=$('unlockToast'); el.textContent=m; el.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),2600); }
+
+/* ---------- Apply look ---------- */
+function applyLook(){
+  const f=FONTS[state.font]; document.documentElement.style.setProperty('--fhead',f.head); document.documentElement.style.setProperty('--fbody',f.body);
+  const hc=HAIR[state.hair].c; document.documentElement.style.setProperty('--cH',hc[0]); document.documentElement.style.setProperty('--cHd',hc[1]); document.documentElement.style.setProperty('--cHl',hc[2]);
+  const svg=STYLES[state.style].svg(); $('emiHome').innerHTML=svg; $('emiGame').innerHTML=svg; $('emiMap').innerHTML=svg;
+  document.body.style.background=BG[state.bg].css;
+  $('petHome').textContent=PETS[state.pet]?PETS[state.pet].emoji:'';
+}
+
+/* ---------- Wardrobe ---------- */
+let wdTab='postac';
+function lockHtml(need){ return `<div class="lock"><span class="l-ico">🔒</span>⭐ ${need}</div>`; }
+function renderWardrobe(){
+  const grid=$('wdGrid'); grid.innerHTML='';
+  const add=(html,sel,onclick)=>{ const c=document.createElement('div'); c.className='card'+(sel?' sel':''); c.innerHTML=html; c.onclick=onclick; grid.appendChild(c); };
+  if(wdTab==='postac'){ STYLE_ORDER.forEach(k=>add(`<div class="big">${STYLES[k].svg()}</div><div class="lbl">${STYLES[k].name}</div>`, state.style===k,
+      ()=>{ state.style=k; state.styleChanged=true; save(); applyLook(); renderWardrobe(); checkAch(); say(STYLES[k].name); }));
+  }else if(wdTab==='wlosy'){ HAIR_ORDER.forEach(k=>{ const it=HAIR[k], lk=state.stars<it.need;
+      add(`<div class="swatch" style="background:linear-gradient(160deg,${it.c[2]},${it.c[0]} 50%,${it.c[1]})"></div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
+        state.hair===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.hair=k; state.styleChanged=true; save(); applyLook(); renderWardrobe(); checkAch(); }); });
+  }else if(wdTab==='tlo'){ BG_ORDER.forEach(k=>{ const it=BG[k], lk=state.stars<it.need;
+      add(`<div class="swatch" style="background:${it.css}"></div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
+        state.bg===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.bg=k; save(); applyLook(); renderWardrobe(); }); });
+  }else if(wdTab==='pet'){ PET_ORDER.forEach(k=>{ const it=PETS[k], lk=state.stars<it.need;
+      add(`<div class="big">${it.emoji||'🚫'}</div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
+        state.pet===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.pet=k; save(); applyLook(); renderWardrobe(); checkAch(); if(it.emoji)say(it.name); }); });
+  }else if(wdTab==='font'){ FONT_ORDER.forEach(k=>{ const it=FONTS[k];
+      add(`<div class="fontprev"><div class="fp-h" style="font-family:${it.head};color:var(--text)">Emilka 123</div><div class="fp-b" style="font-family:${it.body}">Brawo, super! Litery i liczby</div></div><div class="lbl">${it.name}</div>`,
+        state.font===k, ()=>{ state.font=k; save(); applyLook(); renderWardrobe(); }); });
+  }else{ // głos
+    add(`<div class="big">🎚️</div><div class="lbl">Auto (najlepszy)</div>`, !state.voiceName,
+      ()=>{ state.voiceName=null; save(); pickVoice(); renderWardrobe(); say('Cześć! Jestem Emilka.'); });
+    const pls=('speechSynthesis'in window)?speechSynthesis.getVoices().filter(isPl):[];
+    pls.forEach(v=>{ const nm=v.name.replace('Microsoft ','').replace(' - Polish (Poland)','').replace(' (Natural)','✨');
+      add(`<div class="big">🎙️</div><div class="lbl">${nm}</div>`, state.voiceName===v.name,
+        ()=>{ state.voiceName=v.name; save(); pickVoice(); renderWardrobe(); say('Cześć! Jestem Emilka. Tak będę do ciebie mówić.'); }); });
+    if(!pls.length) grid.insertAdjacentHTML('beforeend','<div style="padding:14px;color:var(--muted);max-width:320px;text-align:center">Brak dodatkowych polskich głosów na tym urządzeniu. Możesz doinstalować polski głos w ustawieniach systemu lub przeglądarki.</div>');
+  }
+}
+
+/* ---------- Navigation ---------- */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $(id).classList.add('on'); $('topStars').style.display=id==='home'?'block':'none'; }
+function goHome(){ if('speechSynthesis'in window)speechSynthesis.cancel(); show('home'); }
+document.querySelectorAll('.world[data-world]').forEach(b=>{ b.onclick=()=>{ unlockAudio(); openMap(b.dataset.world); }; });
+$('shopBtn').onclick=()=>{ unlockAudio(); show('wardrobe'); renderWardrobe(); say('Szatnia!'); };
+$('statsBtn').onclick=()=>{ show('stats'); renderStats(); };
+$('achBtn').onclick=()=>{ show('achv'); renderAch(); };
+$('mapBack').onclick=goHome; $('wdBack').onclick=goHome; $('stBack').onclick=goHome; $('acBack').onclick=goHome; $('homeBtn').onclick=goHome;
+document.querySelectorAll('#wdTabs .tab').forEach(t=>{ t.onclick=()=>{ document.querySelectorAll('#wdTabs .tab').forEach(x=>x.classList.remove('on')); t.classList.add('on'); wdTab=t.dataset.tab; renderWardrobe(); }; });
+$('speakBtn').onclick=()=>{ muted=!muted; $('speakBtn').textContent=muted?'🔇':'🔊'; if(!muted){ unlockAudio(); say('Dźwięk włączony'); } else if('speechSynthesis'in window)speechSynthesis.cancel(); };
+
+/* ---------- Confetti ---------- */
+const cv=$('confetti'), ctx=cv.getContext('2d'); let parts=[], raf=null;
+function sizeCanvas(){ cv.width=innerWidth; cv.height=innerHeight; } addEventListener('resize',sizeCanvas); sizeCanvas();
+function confetti(){ cv.style.display='block'; parts=[]; const cols=['#ff4d9d','#22bfe6','#ffc83d','#9b59e6','#58cc62','#ff7ac6'];
+  for(let i=0;i<80;i++)parts.push({x:innerWidth/2,y:innerHeight*0.4,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,g:.4+Math.random()*.3,s:6+Math.random()*8,c:cols[i%cols.length],rot:Math.random()*6,vr:(Math.random()-.5)*.4,life:0});
+  if(!raf)raf=requestAnimationFrame(tick); }
+function tick(){ ctx.clearRect(0,0,cv.width,cv.height); let alive=false;
+  parts.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life++;
+    if(p.y<cv.height+30&&p.life<160){ alive=true; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); ctx.restore(); } });
+  if(alive)raf=requestAnimationFrame(tick); else { raf=null; ctx.clearRect(0,0,cv.width,cv.height); cv.style.display='none'; } }
+
+/* ---------- Audio unlock + zoom guard ---------- */
+let audioUnlocked=false;
+function unlockAudio(){ if(audioUnlocked||!('speechSynthesis'in window))return; try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); audioUnlocked=true; pickVoice(); }catch(e){} }
+document.body.addEventListener('pointerdown',unlockAudio,{once:true});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+let lastTouch=0; document.addEventListener('touchend',e=>{ const n=Date.now(); if(n-lastTouch<300)e.preventDefault(); lastTouch=n; },{passive:false});
+
+/* ---------- Init ---------- */
+applyLook(); updateStarUI(); checkAch();
+</script>
+</body>
+</html>
