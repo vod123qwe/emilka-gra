@@ -66,6 +66,8 @@
   .w-numbers{ background:linear-gradient(160deg,#46c8f5,#1f8fc4); }
   .w-logic{ background:linear-gradient(160deg,#b06bff,#8338d6); }
   .w-tf{ background:linear-gradient(160deg,#34d6c0,#159c8b); }
+  .world .wsub{ font-size:11px; opacity:.92; font-weight:700; margin-top:3px; }
+  .tf-intro{ text-align:center; font-family:var(--fhead); font-weight:700; color:var(--muted); font-size:clamp(15px,4vw,20px); padding:6px; flex:none; }
   .menu-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   .pill{ border:none; cursor:pointer; border-radius:30px; padding:12px 20px; color:var(--text); font-family:var(--fhead);
     font-weight:700; font-size:clamp(13px,3.2vw,17px); background:var(--card); box-shadow:0 4px 0 var(--btnsh);
@@ -225,6 +227,11 @@
     .opt.pic,.opt.shape{ width:clamp(82px,15vh,134px); height:clamp(82px,15vh,134px); }
     .opt.group{ width:clamp(92px,17vh,140px); min-height:clamp(82px,15vh,124px); }
   }
+  #repeatBtn{ position:fixed; bottom:calc(env(safe-area-inset-bottom) + 14px); left:50%; transform:translateX(-50%); z-index:6;
+    display:none; align-items:center; gap:8px; border:none; cursor:pointer; border-radius:30px; padding:12px 24px;
+    font-family:var(--fhead); font-weight:700; font-size:clamp(15px,3.8vw,19px); color:#fff;
+    background:linear-gradient(160deg,#46c8f5,#1f8fc4); box-shadow:0 6px 0 #166d97; }
+  #repeatBtn:active{ transform:translateX(-50%) translateY(4px); box-shadow:0 2px 0 #166d97; }
   .hint{ position:fixed; bottom:8px; left:0; right:0; text-align:center; font-size:11px; color:var(--muted); opacity:.7; z-index:2; }
 </style>
 </head>
@@ -259,6 +266,13 @@
     </div>
     <div class="map-banner"><div class="emi" id="emiMap"></div><div class="bubble" id="mapBubble">Wybierz poziom!</div></div>
     <div class="map-scroll" id="mapScroll"><div class="map-inner" id="mapInner"></div></div>
+  </section>
+
+  <!-- TF MENU -->
+  <section class="screen" id="tfmenu">
+    <div class="topbar"><button class="iconbtn" id="tfBack">🏠</button><div class="ttl">🤔 Prawda czy Fałsz</div><div style="width:52px"></div></div>
+    <div class="tf-intro">Wybierz temat:</div>
+    <div class="worlds" id="tfGrid" style="margin:auto 0;align-content:center;flex:1;overflow-y:auto;padding:14px"></div>
   </section>
 
   <!-- GAME -->
@@ -308,6 +322,7 @@
 <div id="levelDone"></div>
 <div id="unlockToast"></div>
 <canvas id="confetti"></canvas>
+<button id="repeatBtn">🔊 Powtórz</button>
 <div class="hint">Pionowo i poziomo • mapy • statystyki • osiągnięcia</div>
 
 <script>
@@ -455,6 +470,8 @@ function pickVoice(){ const vs=speechSynthesis.getVoices();
 if('speechSynthesis'in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
 function say(t){ if(muted||!('speechSynthesis'in window))return; try{ speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(t); u.lang='pl-PL'; if(plVoice)u.voice=plVoice; u.rate=.96; u.pitch=1.08; speechSynthesis.speak(u);}catch(e){} }
+let lastAsk=''; function ask(t){ lastAsk=t; say(t); }
+function repeatAsk(){ unlockAudio(); if(lastAsk)say(lastAsk); }
 
 /* ---------- Knowledge base ---------- */
 const LETTERS_ORD=['A','B','C','D','E','F','G','H','I','J','K','L','Ł','M','N','O','P','R','S','T','U','W','Z'];
@@ -494,6 +511,8 @@ function shapeSVG(k,c){
   return '';
 }
 const SHAPES=['circle','square','triangle','star','heart'];
+function sizedShape(k,c,pct){ return shapeSVG(k,c).replace('class="shape-svg"', `class="shape-svg" style="width:${pct}%;height:${pct}%"`); }
+const PAIRS=[['🧦','👟'],['🐝','🍯'],['🔑','🔒'],['🖌️','🎨'],['🦴','🐶'],['🥕','🐰'],['🧀','🐭'],['🍼','👶'],['🧤','❄️'],['☔','🌧️'],['🐤','🥚'],['🐟','🌊']];
 
 /* ============== ROUND GENERATORS (d=level) ============== */
 function roundLetters(d){
@@ -507,10 +526,10 @@ function roundLetters(d){
   const poolN=clamp(3+Math.ceil(d*0.8),4,LETTERS_ORD.length), pool=LETTERS_ORD.slice(0,poolN), nOpt=d>=10?4:3;
   const target=pick(pool), [word,emoji]=LETTERS[target], distract=shuffle(pool.filter(k=>k!==target)).slice(0,nOpt-1);
   if(variant==='l2p'){ promptArea().innerHTML=`<div class="prompt-big">${target}</div>`;
-    setBubble(`Znajdź obrazek na literę ${target}`); say(`Litera ${target}. Znajdź obrazek, który zaczyna się na ${target}.`);
+    setBubble(`Znajdź obrazek na literę ${target}`); ask(`Litera ${target}. Znajdź obrazek, który zaczyna się na ${target}.`);
     renderOptions(shuffle([{k:target,c:1},...distract.map(k=>({k,c:0}))]).map(o=>({html:LETTERS[o.k][1],cls:'pic',correct:!!o.c,speak:LETTERS[o.k][0]})), ()=>say(`${target} jak ${word}!`));
-  }else{ promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(60px,17vw,130px)">${emoji}</div><div style="font-family:var(--fhead);font-weight:700;font-size:clamp(20px,5vw,32px);color:var(--magenta)">${word}</div>`;
-    setBubble(`Na jaką literę jest ${word}?`); say(`${word}. Na jaką literę zaczyna się ${word}?`);
+  }else{ promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(64px,18vw,140px)">${emoji}</div>`;
+    setBubble('Na jaką literę zaczyna się ten obrazek?'); ask(`${word}. Na jaką literę zaczyna się ${word}?`);
     renderOptions(shuffle([{k:target,c:1},...distract.map(k=>({k,c:0}))]).map(o=>({html:o.k,cls:'letter',correct:!!o.c,speak:o.k})), ()=>say(`${word} na literę ${target}!`));
   }
 }
@@ -520,187 +539,168 @@ function roundNumbers(d){
   const v=pick(variants), maxN=clamp(3+d,5,9);
   if(v==='count'){ const n=1+rnd(maxN), e=pick(COUNT_EMOJI);
     promptArea().innerHTML=`<div class="prompt-objs">${(e+' ').repeat(n).trim()}</div>`;
-    setBubble('Policz i dotknij liczby!'); say('Policz, ile tu jest. Dotknij właściwej liczby.');
+    setBubble('Policz i dotknij liczby!'); ask('Policz, ile tu jest. Dotknij właściwej liczby.');
     let s=new Set([n]); while(s.size<3)s.add(1+rnd(maxN));
     renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===n,speak:nw(x)})), ()=>say(`Tak! ${nw(n)}`));
   }else if(v==='group'){ const n=1+rnd(clamp(maxN,5,7)), e=pick(COUNT_EMOJI);
     promptArea().innerHTML=`<div class="prompt-big">${n}</div>`;
-    setBubble(`Dotknij grupy z ${nw(n)}!`); say(`Liczba ${nw(n)}. Dotknij grupy, gdzie jest ${nw(n)}.`);
+    setBubble(`Dotknij grupy z ${nw(n)}!`); ask(`Liczba ${nw(n)}. Dotknij grupy, w której jest ${nw(n)}.`);
     let s=new Set([n]); while(s.size<3)s.add(1+rnd(clamp(maxN,5,7)));
     renderOptions(shuffle([...s]).map(c=>({html:(e+' ').repeat(c).trim(),cls:'group',correct:c===n,speak:nw(c)})), ()=>say(`Brawo! ${nw(n)}`));
   }else if(v==='largest'){ let s=new Set(); while(s.size<3)s.add(1+rnd(9)); const arr=[...s], mx=Math.max(...arr);
     promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(22px,5.5vw,34px);color:var(--magenta)">Która liczba jest największa?</div>`;
-    setBubble('Dotknij największej!'); say('Dotknij największej liczby.');
+    setBubble('Dotknij największej!'); ask('Która liczba jest największa? Dotknij jej.');
     renderOptions(shuffle(arr).map(x=>({html:x,cls:'num',correct:x===mx,speak:nw(x)})), ()=>say(`Tak! ${nw(mx)} jest największa.`));
   }else if(v==='add'){ const cap=d>=20?9:5, a=1+rnd(cap), b=1+rnd(cap), sum=a+b;
     promptArea().innerHTML=`<div class="prompt-big" style="font-size:clamp(54px,15vw,110px)">${a} + ${b}</div>`;
-    setBubble('Ile to razem?'); say(`Ile to jest ${nw(a)} plus ${nw(b)}?`);
+    setBubble('Ile to razem?'); ask(`Ile to jest ${nw(a)} plus ${nw(b)}?`);
     let s=new Set([sum]); while(s.size<3)s.add(clamp(sum+(rnd(5)-2),1,18));
     renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===sum,speak:nw(x)})), ()=>say(`Tak! To ${nw(sum)}`));
   }else if(v==='sub'){ const a=2+rnd(8), b=1+rnd(a-1), res=a-b;
     promptArea().innerHTML=`<div class="prompt-big" style="font-size:clamp(54px,15vw,110px)">${a} − ${b}</div>`;
-    setBubble('Ile zostanie?'); say(`Ile to jest ${nw(a)} minus ${nw(b)}?`);
+    setBubble('Ile zostanie?'); ask(`Ile to jest ${nw(a)} minus ${nw(b)}?`);
     let s=new Set([res]); while(s.size<3)s.add(clamp(res+(rnd(5)-2),0,9));
     renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===res,speak:nw(x)})), ()=>say(`Tak! Zostanie ${nw(res)}`));
   }else{ const a=1+rnd(5), b=1+rnd(5), sum=a+b;
     promptArea().innerHTML=`<div class="prompt-big" style="font-size:clamp(46px,13vw,96px)">${a} + ❓ = ${sum}</div>`;
-    setBubble('Ile brakuje?'); say(`${nw(a)} plus ile równa się ${nw(sum)}?`);
+    setBubble('Ile brakuje?'); ask(`${nw(a)} plus ile równa się ${nw(sum)}?`);
     let s=new Set([b]); while(s.size<3)s.add(clamp(b+(rnd(5)-2),1,9));
     renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===b,speak:nw(x)})), ()=>say(`Tak! Brakuje ${nw(b)}`));
   }
 }
 function roundLogic(d){
-  const variants=['oddcolor']; if(d>=3)variants.push('oddshape'); if(d>=5)variants.push('pattern'); if(d>=8)variants.push('oddcat');
+  const variants=['oddcolor','same','bigsmall']; if(d>=3)variants.push('oddshape','pairs'); if(d>=5)variants.push('pattern'); if(d>=8)variants.push('oddcat');
   const v=pick(variants), nOpt=d>=6?4:3;
   if(v==='oddcolor'){ const cols=shuffle(COLORS), base=cols[0], odd=cols[1], sh=pick(SHAPES);
-    setBubble('Który jest inny?'); say('Który jest inny? Dotknij tego, który nie pasuje.'); promptArea().innerHTML='';
+    setBubble('Który jest inny?'); ask('Który jest inny? Dotknij tego, który nie pasuje do reszty.'); promptArea().innerHTML='';
     const arr=[{c:odd,k:1}]; for(let i=0;i<nOpt-1;i++)arr.push({c:base,k:0});
-    renderOptions(shuffle(arr).map(o=>({html:shapeSVG(sh,o.c[1]),cls:'shape',correct:!!o.k,speak:o.c[0]})), ()=>say('Tak! Ten był inny.'));
+    renderOptions(shuffle(arr).map(o=>({html:shapeSVG(sh,o.c[1]),cls:'shape',correct:!!o.k,speak:o.c[0]})), ()=>say('Tak! Ten miał inny kolor.'));
   }else if(v==='oddshape'){ const col=pick(COLORS)[1], sh=shuffle(SHAPES);
-    setBubble('Który kształt jest inny?'); say('Który kształt jest inny?'); promptArea().innerHTML='';
+    setBubble('Który kształt jest inny?'); ask('Który kształt jest inny niż pozostałe?'); promptArea().innerHTML='';
     const arr=[{s:sh[1],k:1}]; for(let i=0;i<nOpt-1;i++)arr.push({s:sh[0],k:0});
-    renderOptions(shuffle(arr).map(o=>({html:shapeSVG(o.s,col),cls:'shape',correct:!!o.k})), ()=>say('Świetnie!'));
-  }else if(v==='pattern'){ const cols=shuffle(COLORS).slice(0,2), sh=pick(SHAPES), len=d>=14?6:4;
-    const seq=[]; for(let i=0;i<len;i++)seq.push(cols[i%2]); const next=cols[len%2];
+    renderOptions(shuffle(arr).map(o=>({html:shapeSVG(o.s,col),cls:'shape',correct:!!o.k})), ()=>say('Świetnie! Ten kształt był inny.'));
+  }else if(v==='same'){ const cols=shuffle(COLORS), sh=shuffle(SHAPES), tc=cols[0], ts=sh[0];
+    promptArea().innerHTML=`<div style="width:clamp(64px,17vw,108px);margin:0 auto">${shapeSVG(ts,tc[1])}</div>`;
+    setBubble('Znajdź taki sam!'); ask('Popatrz na kształt na górze i znajdź dokładnie taki sam.');
+    const opts=[{s:ts,c:tc,k:1},{s:ts,c:cols[1],k:0},{s:sh[1],c:tc,k:0}]; if(nOpt>3)opts.push({s:sh[1],c:cols[1],k:0});
+    renderOptions(shuffle(opts).map(o=>({html:shapeSVG(o.s,o.c[1]),cls:'shape',correct:!!o.k})), ()=>say('Tak! Taki sam.'));
+  }else if(v==='bigsmall'){ const sh=pick(SHAPES), col=pick(COLORS)[1], sizes=[42,64,92], big=rnd(2)===0, target=big?92:42;
+    setBubble(big?'Który jest największy?':'Który jest najmniejszy?'); ask(big?'Dotknij największego kształtu.':'Dotknij najmniejszego kształtu.'); promptArea().innerHTML='';
+    renderOptions(shuffle(sizes).map(sz=>({html:sizedShape(sh,col,sz),cls:'shape',correct:sz===target})), ()=>say(big?'Tak! Ten był największy.':'Tak! Ten był najmniejszy.'));
+  }else if(v==='pairs'){ const p=pick(PAIRS), others=shuffle(PAIRS.filter(x=>x!==p)).slice(0,nOpt-1).map(x=>x[rnd(2)]);
+    promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(60px,16vw,118px)">${p[0]}</div>`;
+    setBubble('Co do tego pasuje?'); ask('Co pasuje do tego obrazka? Dotknij tego, co do niego pasuje.');
+    renderOptions(shuffle([{e:p[1],k:1},...others.map(e=>({e,k:0}))]).map(o=>({html:o.e,cls:'pic',correct:!!o.k})), ()=>say('Tak! To do siebie pasuje.'));
+  }else if(v==='pattern'){ const ncol=d>=10?3:2, cols=shuffle(COLORS).slice(0,ncol), sh=pick(SHAPES), len=(ncol===3?6:4);
+    const seq=[]; for(let i=0;i<len;i++)seq.push(cols[i%ncol]); const next=cols[len%ncol], wrong=cols[(len+1)%ncol];
     promptArea().innerHTML=`<div style="display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap">`
-      +seq.map(c=>`<div style="width:clamp(34px,8vw,60px)">${shapeSVG(sh,c[1])}</div>`).join('')
-      +`<div style="font-size:clamp(32px,8vw,60px);font-weight:700;color:var(--gold-d)">❓</div></div>`;
-    setBubble('Co jest dalej?'); say('Popatrz na wzór. Co jest dalej?');
-    renderOptions(shuffle([{c:next,k:1},{c:cols[(len+1)%2],k:0}]).map(o=>({html:shapeSVG(sh,o.c[1]),cls:'shape',correct:!!o.k,speak:o.c[0]})), ()=>say('Brawo! Zgadłaś wzór.'));
+      +seq.map(c=>`<div style="width:clamp(30px,7vw,52px)">${shapeSVG(sh,c[1])}</div>`).join('')
+      +`<div style="font-size:clamp(30px,7vw,52px);font-weight:700;color:var(--gold-d)">❓</div></div>`;
+    setBubble('Co jest dalej?'); ask('Popatrz na wzór i zgadnij, co powinno być dalej.');
+    const opts=[{c:next,k:1},{c:wrong,k:0}]; if(nOpt>3&&ncol>2)opts.push({c:cols[(len+2)%ncol],k:0});
+    renderOptions(shuffle(opts).map(o=>({html:shapeSVG(sh,o.c[1]),cls:'shape',correct:!!o.k,speak:o.c[0]})), ()=>say('Brawo! Zgadłaś wzór.'));
   }else{ const ck=shuffle(CAT_KEYS), main=ck[0], oddC=ck[1], mains=shuffle(CATEGORIES[main]).slice(0,nOpt-1), odd=pick(CATEGORIES[oddC]);
-    setBubble('Co tu nie pasuje?'); say('Co tu nie pasuje? Dotknij tego, co jest inne.'); promptArea().innerHTML='';
-    renderOptions(shuffle([{e:odd,k:1},...mains.map(e=>({e,k:0}))]).map(o=>({html:o.e,cls:'pic',correct:!!o.k})), ()=>say('Tak! To nie pasowało.'));
+    setBubble('Co tu nie pasuje?'); ask('Trzy z nich są podobne, a jedno nie pasuje. Dotknij tego innego.'); promptArea().innerHTML='';
+    renderOptions(shuffle([{e:odd,k:1},...mains.map(e=>({e,k:0}))]).map(o=>({html:o.e,cls:'pic',correct:!!o.k})), ()=>say('Tak! To nie pasowało do reszty.'));
   }
 }
 
 /* ---------- Prawda / Fałsz: baza ciekawostek ---------- */
 const TF_EMOJI={ zwierzęta:'🐾', natura:'🌿', ciało:'🧒', kosmos:'🚀', jedzenie:'🍎',
   pojazdy:'🚗', kolory:'🎨', pogoda:'🌦️', dom:'🏠', zawody:'👩‍🚒', nauka:'🧠' };
-const FACTS=[
-  {c:'zwierzęta',q:'Krowa daje nam mleko.',t:true,e:'Tak! Od krów dostajemy mleko, a z niego ser i jogurt.'},
-  {c:'zwierzęta',q:'Ryby potrafią latać w powietrzu jak ptaki.',t:false,e:'Nie. Ryby pływają w wodzie i oddychają skrzelami.'},
-  {c:'zwierzęta',q:'Pszczoły robią miód.',t:true,e:'Tak! Pszczoły zbierają nektar z kwiatów i robią z niego miód.'},
-  {c:'zwierzęta',q:'Słoń jest malutki jak myszka.',t:false,e:'Nie. Słoń jest jednym z największych zwierząt na świecie!'},
-  {c:'zwierzęta',q:'Ptaki mają pióra.',t:true,e:'Tak! Pióra pomagają ptakom latać i chronią je przed zimnem.'},
-  {c:'zwierzęta',q:'Wąż ma cztery nogi.',t:false,e:'Nie. Wąż nie ma nóg — pełza po ziemi.'},
-  {c:'zwierzęta',q:'Żaba potrafi skakać.',t:true,e:'Tak! Żaba ma silne tylne nogi i daleko skacze.'},
-  {c:'zwierzęta',q:'Kura znosi jajka.',t:true,e:'Tak! Z kurzych jajek robimy np. jajecznicę.'},
-  {c:'natura',q:'Słońce świeci w dzień.',t:true,e:'Tak! Słońce daje nam światło i ciepło za dnia.'},
-  {c:'natura',q:'Śnieg jest gorący.',t:false,e:'Nie. Śnieg jest zimny — robi się z zamarzniętej wody.'},
-  {c:'natura',q:'Deszcz pada z chmur.',t:true,e:'Tak! Woda zbiera się w chmurach i spada jako deszcz.'},
-  {c:'natura',q:'Ogień jest zimny i można go dotknąć.',t:false,e:'Nie! Ogień jest bardzo gorący i parzy — nie wolno go dotykać.'},
-  {c:'natura',q:'Drzewa rosną w górę.',t:true,e:'Tak! Drzewa rosną do góry, a korzenie w dół.'},
-  {c:'natura',q:'Woda w morzu jest słona.',t:true,e:'Tak! Dlatego morska woda nie smakuje jak ta z kranu.'},
-  {c:'natura',q:'Tęcza jest czarno-biała.',t:false,e:'Nie. Tęcza ma wiele kolorów, np. czerwony, żółty i niebieski.'},
-  {c:'ciało',q:'Mamy dwoje oczu.',t:true,e:'Tak! Dwoje oczu pomaga nam dobrze widzieć.'},
-  {c:'ciało',q:'Nosem czujemy zapachy.',t:true,e:'Tak! Nosem wąchamy np. kwiaty i jedzenie.'},
-  {c:'ciało',q:'Człowiek ma trzy ręce.',t:false,e:'Nie. Mamy dwie ręce i dwie nogi.'},
-  {c:'ciało',q:'Uszami słyszymy dźwięki.',t:true,e:'Tak! Uszami słuchamy muzyki i głosów.'},
-  {c:'ciało',q:'Zęby służą do gryzienia jedzenia.',t:true,e:'Tak! Dlatego trzeba je myć, żeby były zdrowe.'},
-  {c:'ciało',q:'Serce bije w stopie.',t:false,e:'Nie. Serce bije w klatce piersiowej.'},
-  {c:'kosmos',q:'Słońce to gwiazda.',t:true,e:'Tak! Słońce to wielka, gorąca gwiazda.'},
-  {c:'kosmos',q:'Na nocnym niebie widać gwiazdy.',t:true,e:'Tak! W nocy niebo jest pełne małych, świecących gwiazd.'},
-  {c:'kosmos',q:'Rakieta lata w kosmos.',t:true,e:'Tak! Rakiety wynoszą astronautów w kosmos.'},
-  {c:'kosmos',q:'Ziemia jest płaska jak naleśnik.',t:false,e:'Nie. Ziemia jest okrągła, jak wielka piłka.'},
-  {c:'kosmos',q:'Księżyc widać czasem w nocy.',t:true,e:'Tak! Księżyc świeci na nocnym niebie.'},
-  {c:'jedzenie',q:'Marchewka jest warzywem.',t:true,e:'Tak! Marchewka jest zdrowa i pomarańczowa.'},
-  {c:'jedzenie',q:'Banan jest niebieski.',t:false,e:'Nie. Dojrzały banan jest żółty.'},
-  {c:'jedzenie',q:'Chleb robi się z mąki.',t:true,e:'Tak! Z mąki i wody piecze się chleb.'},
-  {c:'jedzenie',q:'Cytryna jest słodka jak cukierek.',t:false,e:'Nie. Cytryna jest bardzo kwaśna.'},
-  {c:'jedzenie',q:'Owoce i warzywa są zdrowe.',t:true,e:'Tak! Dają nam siłę i witaminy.'},
-  {c:'jedzenie',q:'Lody są gorące.',t:false,e:'Nie. Lody są zimne — dlatego się rozpuszczają w cieple.'},
-  {c:'zwierzęta',q:'Kot mówi „miau".',t:true,e:'Tak! Kot miauczy: miau, miau.'},
-  {c:'zwierzęta',q:'Kogut robi „kukuryku".',t:true,e:'Tak! Kogut pieje rano: kukuryku!'},
-  {c:'zwierzęta',q:'Pies macha ogonem, gdy się cieszy.',t:true,e:'Tak! Machanie ogonem to znak radości psa.'},
-  {c:'zwierzęta',q:'Pingwin mieszka tam, gdzie jest ciepło i piaszczysto.',t:false,e:'Nie. Pingwiny lubią zimno i lód.'},
-  {c:'zwierzęta',q:'Zając ma długie uszy.',t:true,e:'Tak! Długie uszy pomagają mu dobrze słyszeć.'},
-  {c:'zwierzęta',q:'Ślimak jest bardzo szybki.',t:false,e:'Nie. Ślimak porusza się powoli i nosi domek na grzbiecie.'},
-  {c:'zwierzęta',q:'Kaczka potrafi pływać.',t:true,e:'Tak! Kaczka pływa po wodzie i robi „kwa kwa".'},
-  {c:'zwierzęta',q:'Motyl ma kolorowe skrzydła.',t:true,e:'Tak! Motyle mają piękne, kolorowe skrzydełka.'},
-  {c:'zwierzęta',q:'Sowa najczęściej śpi w nocy.',t:false,e:'Nie. Sowa jest aktywna w nocy, a śpi w dzień.'},
-  {c:'zwierzęta',q:'Krowa potrafi latać.',t:false,e:'Nie. Krowa chodzi po łące, nie lata.'},
-  {c:'natura',q:'Latem liście na drzewach są zielone.',t:true,e:'Tak! Latem drzewa mają zielone liście.'},
-  {c:'natura',q:'Zimą często pada śnieg.',t:true,e:'Tak! Zimą jest zimno i pada biały śnieg.'},
-  {c:'natura',q:'Kwiaty wyrastają z nasionek.',t:true,e:'Tak! Z małego nasionka wyrasta kwiatek.'},
-  {c:'natura',q:'Trawa jest niebieska.',t:false,e:'Nie. Trawa jest zielona.'},
-  {c:'natura',q:'Kamień jest miękki jak poduszka.',t:false,e:'Nie. Kamień jest twardy.'},
-  {c:'natura',q:'Wiatr potrafi poruszać liśćmi.',t:true,e:'Tak! Wiatr kołysze drzewa i liście.'},
-  {c:'natura',q:'W nocy robi się ciemno.',t:true,e:'Tak! Gdy słońce zachodzi, robi się ciemno.'},
-  {c:'ciało',q:'Włosy rosną nam na głowie.',t:true,e:'Tak! Dlatego czasem idziemy do fryzjera.'},
-  {c:'ciało',q:'Rękami możemy klaskać.',t:true,e:'Tak! Klap, klap — klaszczemy rękami.'},
-  {c:'ciało',q:'Językiem czujemy smak.',t:true,e:'Tak! Język czuje, czy coś jest słodkie czy kwaśne.'},
-  {c:'ciało',q:'Mamy dziesięć palców u rąk.',t:true,e:'Tak! Pięć i pięć — razem dziesięć palców.'},
-  {c:'ciało',q:'Oczami słyszymy dźwięki.',t:false,e:'Nie. Oczami widzimy, a słyszymy uszami.'},
-  {c:'ciało',q:'Gdy jesteśmy bardzo zmęczeni, idziemy spać.',t:true,e:'Tak! Sen daje nam siłę na nowy dzień.'},
-  {c:'kosmos',q:'W kosmosie jest bardzo dużo gwiazd.',t:true,e:'Tak! Na niebie są miliony gwiazd.'},
-  {c:'kosmos',q:'Słońce wschodzi rano.',t:true,e:'Tak! Rano słońce pojawia się na niebie.'},
-  {c:'kosmos',q:'Księżyc jest kwadratowy.',t:false,e:'Nie. Księżyc jest okrągły.'},
-  {c:'kosmos',q:'Astronauta zakłada specjalny skafander.',t:true,e:'Tak! W kosmosie astronauta nosi skafander i hełm.'},
-  {c:'jedzenie',q:'Jabłko rośnie na drzewie.',t:true,e:'Tak! Jabłka rosną na jabłoni.'},
-  {c:'jedzenie',q:'Mleko jest czarne.',t:false,e:'Nie. Mleko jest białe.'},
-  {c:'jedzenie',q:'Woda gasi pragnienie.',t:true,e:'Tak! Gdy chce nam się pić, pijemy wodę.'},
-  {c:'jedzenie',q:'Trzeba myć ręce przed jedzeniem.',t:true,e:'Tak! Mycie rąk chroni przed zarazkami.'},
-  {c:'jedzenie',q:'Czekolada jest warzywem.',t:false,e:'Nie. Czekolada to słodycz, a nie warzywo.'},
-  {c:'jedzenie',q:'Pomidor jest czerwony.',t:true,e:'Tak! Dojrzały pomidor jest czerwony.'},
-  {c:'pojazdy',q:'Samochód jeździ po drodze.',t:true,e:'Tak! Samochód ma koła i jeździ po drodze.'},
-  {c:'pojazdy',q:'Samolot lata w powietrzu.',t:true,e:'Tak! Samolot ma skrzydła i lata wysoko.'},
-  {c:'pojazdy',q:'Statek pływa po wodzie.',t:true,e:'Tak! Statki i łódki pływają po wodzie.'},
-  {c:'pojazdy',q:'Rower ma dwa koła.',t:true,e:'Tak! Na rowerze jedziemy, pedałując nogami.'},
-  {c:'pojazdy',q:'Pociąg jeździ po szynach.',t:true,e:'Tak! Pociąg jedzie po szynach: tuf, tuf!'},
-  {c:'pojazdy',q:'Samochód pływa pod wodą jak ryba.',t:false,e:'Nie. Samochód jeździ po drodze, nie pływa.'},
-  {c:'kolory',q:'Niebo w słoneczny dzień jest niebieskie.',t:true,e:'Tak! W dzień niebo jest niebieskie.'},
-  {c:'kolory',q:'Śnieg jest biały.',t:true,e:'Tak! Świeży śnieg jest biały.'},
-  {c:'kolory',q:'Banan jest żółty.',t:true,e:'Tak! Dojrzały banan jest żółty.'},
-  {c:'kolory',q:'Truskawka jest czarna.',t:false,e:'Nie. Truskawka jest czerwona.'},
-  {c:'kolory',q:'Trawa jest zielona.',t:true,e:'Tak! Trawa na łące jest zielona.'},
-  {c:'pogoda',q:'Gdy pada deszcz, bierzemy parasol.',t:true,e:'Tak! Parasol chroni nas przed deszczem.'},
-  {c:'pogoda',q:'Latem jest ciepło.',t:true,e:'Tak! Latem świeci słońce i jest ciepło.'},
-  {c:'pogoda',q:'Śnieg pada latem na plaży.',t:false,e:'Nie. Śnieg pada zimą, gdy jest zimno.'},
-  {c:'pogoda',q:'Po burzy czasem widać tęczę.',t:true,e:'Tak! Po deszczu i słońcu pojawia się tęcza.'},
-  {c:'dom',q:'W łóżku śpimy.',t:true,e:'Tak! W łóżku odpoczywamy i śpimy.'},
-  {c:'dom',q:'Zęby myjemy szczoteczką.',t:true,e:'Tak! Szczoteczką i pastą myjemy zęby.'},
-  {c:'dom',q:'Buty zakładamy na ręce.',t:false,e:'Nie. Buty zakładamy na nogi.'},
-  {c:'dom',q:'W lodówce jedzenie dłużej jest świeże.',t:true,e:'Tak! Lodówka chłodzi i chroni jedzenie.'},
-  {c:'dom',q:'Lampa daje światło.',t:true,e:'Tak! Lampę włączamy, gdy jest ciemno.'},
-  {c:'zawody',q:'Lekarz pomaga, gdy jesteśmy chorzy.',t:true,e:'Tak! Lekarz leczy i dba o nasze zdrowie.'},
-  {c:'zawody',q:'Strażak gasi pożary.',t:true,e:'Tak! Strażak gasi ogień i pomaga ludziom.'},
-  {c:'zawody',q:'Kucharz gotuje jedzenie.',t:true,e:'Tak! Kucharz przygotowuje pyszne posiłki.'},
-  {c:'zawody',q:'Listonosz przynosi listy i paczki.',t:true,e:'Tak! Listonosz dostarcza pocztę do domów.'},
-  {c:'zawody',q:'Nauczyciel śpi cały dzień zamiast uczyć.',t:false,e:'Nie. Nauczyciel uczy dzieci nowych rzeczy.'},
-  {c:'zwierzęta',q:'Delfin to ryba.',t:false,d:2,e:'Nie. Delfin to ssak — wypływa na powierzchnię, by zaczerpnąć powietrza.'},
-  {c:'zwierzęta',q:'Nietoperz lata, ale nie jest ptakiem.',t:true,d:2,e:'Tak! Nietoperz to ssak, choć ma skrzydła i potrafi latać.'},
-  {c:'zwierzęta',q:'Pająk jest owadem.',t:false,d:2,e:'Nie. Pająk ma osiem nóg, a owady mają sześć.'},
-  {c:'zwierzęta',q:'Motyl najpierw jest gąsienicą.',t:true,d:2,e:'Tak! Gąsienica zamienia się w pięknego motyla.'},
-  {c:'zwierzęta',q:'Żaba na początku życia jest kijanką.',t:true,d:2,e:'Tak! Kijanka mieszka w wodzie i z czasem staje się żabą.'},
-  {c:'zwierzęta',q:'Zimą niedźwiedź zapada w sen zimowy.',t:true,d:2,e:'Tak! Śpi, gdy jest zimno i trudno o jedzenie.'},
-  {c:'zwierzęta',q:'Wielbłąd ma garb z zapasem na trudne dni.',t:true,d:2,e:'Tak! Garb pomaga mu przetrwać na pustyni.'},
-  {c:'zwierzęta',q:'Dinozaury żyją dziś w pobliskim lesie.',t:false,d:2,e:'Nie. Dinozaury wyginęły bardzo, bardzo dawno temu.'},
-  {c:'zwierzęta',q:'Wieloryb jest większy od słonia.',t:true,d:2,e:'Tak! Wieloryb to największe zwierzę na Ziemi.'},
-  {c:'kosmos',q:'Ziemia krąży wokół Słońca.',t:true,d:2,e:'Tak! Ziemia okrąża Słońce przez cały rok.'},
-  {c:'kosmos',q:'Księżyc świeci własnym światłem.',t:false,d:2,e:'Nie. Księżyc odbija światło Słońca.'},
-  {c:'kosmos',q:'Słońce jest dużo większe od Ziemi.',t:true,d:2,e:'Tak! Słońce to ogromna gwiazda.'},
-  {c:'natura',q:'Lód pływa po wodzie i nie tonie.',t:true,d:2,e:'Tak! Dlatego góry lodowe unoszą się na morzu.'},
-  {c:'natura',q:'Drzewo iglaste ma igły zamiast liści.',t:true,d:2,e:'Tak! Np. sosna i świerk — zielone nawet zimą.'},
-  {c:'natura',q:'Rośliny potrzebują światła, żeby rosnąć.',t:true,d:2,e:'Tak! Dlatego kwiaty zwracają się ku słońcu.'},
-  {c:'natura',q:'Magnes przyciąga metalowe rzeczy.',t:true,d:2,e:'Tak! Przyciąga np. spinacze i gwoździe.'},
-  {c:'natura',q:'Cień powstaje, gdy coś zasłania światło.',t:true,d:2,e:'Tak! W słońcu twoje ciało rzuca cień.'},
-  {c:'ciało',q:'Serce pompuje krew po całym ciele.',t:true,d:2,e:'Tak! Serce bije i rozprowadza krew.'},
-  {c:'ciało',q:'Krew w naszym ciele jest niebieska.',t:false,d:2,e:'Nie. Krew jest czerwona.'},
-  {c:'ciało',q:'Kości tworzą szkielet, który trzyma ciało.',t:true,d:2,e:'Tak! Kości są twarde i nas podtrzymują.'},
-  {c:'nauka',q:'Tydzień ma siedem dni.',t:true,d:2,e:'Tak! Od poniedziałku do niedzieli — siedem dni.'},
-  {c:'nauka',q:'Rok ma cztery pory roku.',t:true,d:2,e:'Tak! Wiosna, lato, jesień i zima.'},
-  {c:'nauka',q:'Trójkąt ma trzy boki.',t:true,d:2,e:'Tak! „Trój" znaczy trzy.'},
-  {c:'nauka',q:'Liczba 10 jest mniejsza niż 5.',t:false,d:2,e:'Nie. 10 jest większe niż 5.'},
-  {c:'nauka',q:'Po wtorku jest środa.',t:true,d:2,e:'Tak! Poniedziałek, wtorek, środa…'},
-  {c:'nauka',q:'Tęcza zawsze ma kolory w tej samej kolejności.',t:true,d:2,e:'Tak! Na górze czerwony, na dole fioletowy.'},
+const TF_THEMES=[
+  {key:'zwierzeta', name:'Zwierzęta', emoji:'🐾', col:['#34d6c0','#159c8b'], cats:['zwierzęta']},
+  {key:'przyroda', name:'Przyroda', emoji:'🌿', col:['#6fd86f','#3ea53e'], cats:['natura','pogoda','kolory']},
+  {key:'kosmos', name:'Świat i Kosmos', emoji:'🚀', col:['#6aa0ff','#3a6ff0'], cats:['kosmos','pojazdy']},
+  {key:'czlowiek', name:'Ja i Dom', emoji:'🧒', col:['#ff9a6b','#e8682e'], cats:['ciało','dom','jedzenie','zawody']},
+  {key:'madra', name:'Mądra Sowa', emoji:'🦉', col:['#b58cff','#7d4ad6'], cats:['nauka']},
 ];
-function roundTrueFalse(d){
+const FACTS=[
+  {c:'zwierzęta',q:'Pszczoły robią miód z nektaru kwiatów.',t:true,d:1,e:'Tak! Pszczoły zbierają słodki nektar z kwiatów, a w ulu zamieniają go w miód. Przy okazji pomagają kwiatom rosnąć.'},
+  {c:'zwierzęta',q:'Ślimak nosi swój domek na grzbiecie.',t:true,d:1,e:'Tak! Muszla to domek ślimaka. Gdy ślimak się przestraszy, chowa się do środka.'},
+  {c:'zwierzęta',q:'Dinozaury żyją dziś w pobliskim lesie.',t:false,d:1,e:'Nie. Dinozaury żyły miliony lat temu i dawno wyginęły. Dziś oglądamy ich kości tylko w muzeach.'},
+  {c:'zwierzęta',q:'Nietoperz to ptak.',t:false,d:2,e:'Nie. Nietoperz potrafi latać, ale to ssak — nie ma piór, a jego dzieci piją mleko mamy.'},
+  {c:'zwierzęta',q:'Delfin oddycha pod wodą jak ryba.',t:false,d:2,e:'Nie. Delfin to ssak i oddycha powietrzem, dlatego co chwilę wypływa na powierzchnię, żeby zaczerpnąć powietrza.'},
+  {c:'zwierzęta',q:'Pająk ma osiem nóg.',t:true,d:2,e:'Tak! Pająk ma osiem nóg. Dlatego nie jest owadem — owady mają tylko sześć nóg.'},
+  {c:'zwierzęta',q:'Motyl najpierw jest gąsienicą.',t:true,d:2,e:'Tak! Z jajeczka wykluwa się gąsienica, potem zamyka się w kokonie, a na końcu wyfruwa kolorowy motyl.'},
+  {c:'zwierzęta',q:'Żaba na początku życia jest kijanką.',t:true,d:2,e:'Tak! Mała kijanka mieszka w wodzie i ma ogonek. Z czasem wyrastają jej nóżki i staje się żabą.'},
+  {c:'zwierzęta',q:'Pingwin potrafi latać w powietrzu.',t:false,d:2,e:'Nie. Pingwin używa skrzydeł do pływania. W wodzie wygląda, jakby latał, ale w powietrzu nie lata.'},
+  {c:'zwierzęta',q:'Sowa poluje głównie w nocy.',t:true,d:2,e:'Tak! Sowa ma wielkie oczy i świetny słuch, więc poluje w ciemności, gdy inne ptaki śpią.'},
+  {c:'zwierzęta',q:'Niedźwiedź zimą zapada w sen zimowy.',t:true,d:2,e:'Tak! Zimą jest mało jedzenia, więc niedźwiedź zasypia w gawrze i śpi prawie do wiosny.'},
+  {c:'zwierzęta',q:'Wielbłąd gromadzi zapas w garbie.',t:true,d:2,e:'Tak! W garbie wielbłąd trzyma zapas tłuszczu i korzysta z niego, gdy na pustyni brakuje jedzenia i wody.'},
+  {c:'zwierzęta',q:'Ryby oddychają skrzelami.',t:true,d:2,e:'Tak! Ryby nie mają płuc jak my. Skrzela po bokach głowy pozwalają im oddychać pod wodą.'},
+  {c:'zwierzęta',q:'Krokodyl żywi się trawą.',t:false,d:2,e:'Nie. Krokodyl to drapieżnik z ostrymi zębami — poluje na inne zwierzęta, a nie skubie trawy.'},
+  {c:'zwierzęta',q:'Wieloryb jest większy od słonia.',t:true,d:2,e:'Tak! Wieloryb to największe zwierzę na Ziemi — jest nawet większy niż słoń i mieszka w oceanie.'},
+  {c:'zwierzęta',q:'Jeż ma kolce, którymi się broni.',t:true,d:2,e:'Tak! Gdy jeż się boi, zwija się w kulkę najeżoną kolcami, więc nikt nie chce go zaczepiać.'},
+  {c:'natura',q:'Woda w morzu jest słona.',t:true,d:1,e:'Tak! W morskiej wodzie jest dużo soli, dlatego jest słona i nie nadaje się do picia.'},
+  {c:'natura',q:'Ogień jest zimny i można go dotknąć.',t:false,d:1,e:'Nie! Ogień jest bardzo gorący i parzy. Nigdy nie wolno go dotykać.'},
+  {c:'natura',q:'Woda zamarza i zmienia się w lód, gdy jest mróz.',t:true,d:2,e:'Tak! Gdy robi się bardzo zimno, woda twardnieje i zmienia się w lód. W cieple lód znów topnieje w wodę.'},
+  {c:'natura',q:'Lód pływa po wodzie i nie tonie.',t:true,d:2,e:'Tak! Lód jest lżejszy od wody, dlatego unosi się na powierzchni — jak kostki lodu w szklance.'},
+  {c:'natura',q:'Rośliny potrzebują światła, żeby rosnąć.',t:true,d:2,e:'Tak! Roślinki czerpią siłę ze światła słońca i z wody. Dlatego kwiatki obracają się w stronę słońca.'},
+  {c:'natura',q:'Drzewo iglaste, jak sosna, ma igły zamiast liści.',t:true,d:2,e:'Tak! Sosna i świerk mają cienkie igły zamiast liści i pozostają zielone nawet zimą.'},
+  {c:'natura',q:'Jesienią liście zmieniają kolor i opadają.',t:true,d:2,e:'Tak! Jesienią liście robią się żółte i czerwone, a potem spadają. Wiosną wyrosną nowe.'},
+  {c:'natura',q:'Z żołędzia może wyrosnąć dąb.',t:true,d:2,e:'Tak! Mały żołądź to nasionko. Gdy wpadnie do ziemi, może z niego z czasem wyrosnąć wielki dąb.'},
+  {c:'natura',q:'Rzeka płynie pod górę, w stronę źródła.',t:false,d:2,e:'Nie. Woda zawsze spływa w dół, dlatego rzeka płynie z gór aż do morza.'},
+  {c:'pogoda',q:'Po deszczu i słońcu czasem pojawia się tęcza.',t:true,d:2,e:'Tak! Gdy słońce świeci przez kropelki deszczu, rozkłada się na kolory i powstaje tęcza.'},
+  {c:'pogoda',q:'Podczas burzy po błyskawicy słychać grzmot.',t:true,d:2,e:'Tak! Najpierw widać błysk, a chwilę później słychać grzmot, bo dźwięk leci do nas wolniej niż światło.'},
+  {c:'pogoda',q:'Śnieg pada, gdy jest bardzo ciepło.',t:false,d:1,e:'Nie! Wysoko w chmurach jest tak zimno, że kropelki wody zamarzają w maleńkie kryształki i spadają jako śnieg. Dlatego śnieg pada zimą.'},
+  {c:'kolory',q:'Mieszając niebieski i żółty, otrzymasz zielony.',t:true,d:2,e:'Tak! Gdy zmieszasz niebieską farbę z żółtą, powstanie zielona — jak kolor trawy.'},
+  {c:'kolory',q:'Tęcza jest tylko czarno-biała.',t:false,d:1,e:'Nie. Tęcza ma wiele kolorów: czerwony, pomarańczowy, żółty, zielony, niebieski i fioletowy.'},
+  {c:'kolory',q:'Czerwony i pomarańczowy to kolory ciepłe.',t:true,d:2,e:'Tak! Czerwony i pomarańczowy kojarzą się z ogniem i słońcem, dlatego mówimy, że to kolory ciepłe.'},
+  {c:'kosmos',q:'Słońce to gwiazda.',t:true,d:1,e:'Tak! Słońce to ogromna, gorąca gwiazda. Wydaje się większe niż inne gwiazdy, bo jest najbliżej nas.'},
+  {c:'kosmos',q:'Gwiazdy widać najlepiej w nocy.',t:true,d:1,e:'Tak! W dzień jasne słońce zasłania gwiazdy. Dopiero w ciemną noc widać, jak dużo ich świeci.'},
+  {c:'kosmos',q:'Ziemia jest płaska jak naleśnik.',t:false,d:1,e:'Nie. Ziemia jest okrągła jak wielka piłka. Z kosmosu widać niebiesko-zieloną kulę.'},
+  {c:'kosmos',q:'Ziemia krąży wokół Słońca.',t:true,d:2,e:'Tak! Ziemia bez przerwy okrąża Słońce. Jedno pełne okrążenie trwa cały rok.'},
+  {c:'kosmos',q:'Księżyc świeci własnym światłem.',t:false,d:2,e:'Nie. Księżyc sam nie świeci — odbija światło Słońca, tak jak lusterko odbija światło lampy.'},
+  {c:'kosmos',q:'Słońce jest dużo większe od Ziemi.',t:true,d:2,e:'Tak! Słońce jest ogromne — zmieściłoby się w nim mnóstwo takich planet jak nasza Ziemia.'},
+  {c:'kosmos',q:'W kosmosie astronauta nosi skafander.',t:true,d:2,e:'Tak! W kosmosie nie ma powietrza, więc skafander daje astronaucie powietrze do oddychania i chroni go.'},
+  {c:'pojazdy',q:'Statek pływa po wodzie.',t:true,d:1,e:'Tak! Statki i łódki pływają po wodzie i przewożą ludzi oraz różne rzeczy.'},
+  {c:'pojazdy',q:'Pociąg jeździ po szynach.',t:true,d:1,e:'Tak! Pociąg jedzie po metalowych szynach i potrafi ciągnąć wiele wagonów naraz.'},
+  {c:'pojazdy',q:'Samolot jeździ po torach jak pociąg.',t:false,d:1,e:'Nie. Samolot ma skrzydła i lata wysoko w powietrzu. Po torach jeździ pociąg.'},
+  {c:'pojazdy',q:'Helikopter ma wirnik, czyli śmigło na górze.',t:true,d:2,e:'Tak! Kręcące się śmigło na górze unosi helikopter do góry. Dzięki temu potrafi zawisnąć w miejscu.'},
+  {c:'pojazdy',q:'Łódź podwodna potrafi pływać pod wodą.',t:true,d:2,e:'Tak! Łódź podwodna umie zanurzyć się głęboko i pływać pod powierzchnią wody.'},
+  {c:'pojazdy',q:'Karetka jedzie na sygnale do chorych.',t:true,d:2,e:'Tak! Karetka ma głośny sygnał i światła, żeby szybko dojechać i zawieźć chorego do szpitala.'},
+  {c:'ciało',q:'Językiem czujemy smak.',t:true,d:1,e:'Tak! Na języku mamy maleńkie kubki smakowe, które rozpoznają, czy coś jest słodkie, kwaśne czy słone.'},
+  {c:'ciało',q:'Oczami słyszymy dźwięki.',t:false,d:1,e:'Nie. Oczami patrzymy i widzimy, a dźwięki słyszymy uszami.'},
+  {c:'ciało',q:'Serce pompuje krew po całym ciele.',t:true,d:2,e:'Tak! Serce bije bez przerwy i jak pompka rozprowadza krew po ciele. Jego bicie czujesz w klatce piersiowej.'},
+  {c:'ciało',q:'Krew w naszym ciele jest niebieska.',t:false,d:2,e:'Nie. Krew jest czerwona. Żyłki pod skórą bywają niebieskawe, ale sama krew w środku jest czerwona.'},
+  {c:'ciało',q:'Kości tworzą szkielet, który podtrzymuje ciało.',t:true,d:2,e:'Tak! Twarde kości łączą się w szkielet, który trzyma nasze ciało i chroni to, co jest w środku.'},
+  {c:'ciało',q:'Mleczne zęby wypadają, a w ich miejsce rosną nowe.',t:true,d:2,e:'Tak! Najpierw mamy mleczne ząbki. Gdy wypadną, wyrastają większe zęby stałe — już na całe życie.'},
+  {c:'jedzenie',q:'Chleb piecze się z mąki.',t:true,d:1,e:'Tak! Chleb robi się z mąki, wody i drożdży, a potem piecze w gorącym piekarniku.'},
+  {c:'jedzenie',q:'Cytryna jest słodka jak cukierek.',t:false,d:1,e:'Nie. Cytryna jest bardzo kwaśna — gdy ją spróbujesz, aż zaciśniesz oczy!'},
+  {c:'jedzenie',q:'Ser powstaje z mleka.',t:true,d:2,e:'Tak! Z mleka robi się ser, jogurt i masło. Mleko daje nam na przykład krowa.'},
+  {c:'jedzenie',q:'Owoce i warzywa są zdrowe.',t:true,d:1,e:'Tak! Owoce i warzywa mają witaminy, które dają nam siłę i pomagają być zdrowym.'},
+  {c:'dom',q:'Zęby myjemy szczoteczką i pastą.',t:true,d:1,e:'Tak! Zęby myjemy rano i wieczorem, żeby były czyste, mocne i zdrowe.'},
+  {c:'dom',q:'Lodówka chłodzi jedzenie, by dłużej było świeże.',t:true,d:2,e:'Tak! W zimnej lodówce jedzenie wolniej się psuje, dlatego trzymamy w niej np. mleko i jogurt.'},
+  {c:'dom',q:'Klucz pasuje do zamka i otwiera drzwi.',t:true,d:2,e:'Tak! Tylko pasujący klucz otwiera zamek — trochę jak puzzel, który pasuje do jednego miejsca.'},
+  {c:'zawody',q:'Strażak gasi pożary.',t:true,d:1,e:'Tak! Strażak gasi ogień wodą i ratuje ludzi oraz zwierzęta, gdy dzieje się coś groźnego.'},
+  {c:'zawody',q:'Weterynarz leczy zwierzęta.',t:true,d:2,e:'Tak! Weterynarz to lekarz dla zwierząt — pomaga pieskom, kotkom i innym zwierzakom wyzdrowieć.'},
+  {c:'zawody',q:'Listonosz gasi pożary zamiast roznosić listy.',t:false,d:2,e:'Nie. Listonosz roznosi listy i paczki. Pożary gasi strażak.'},
+  {c:'nauka',q:'Zegar pokazuje, która jest godzina.',t:true,d:1,e:'Tak! Wskazówki zegara pokazują czas, dzięki czemu wiemy, kiedy jest pora na obiad albo spanie.'},
+  {c:'nauka',q:'Koło ma rogi.',t:false,d:1,e:'Nie. Koło jest okrągłe i gładkie, nie ma żadnych rogów. Rogi ma na przykład trójkąt albo kwadrat.'},
+  {c:'nauka',q:'Tydzień ma siedem dni.',t:true,d:2,e:'Tak! Tydzień to siedem dni: poniedziałek, wtorek, środa, czwartek, piątek, sobota i niedziela.'},
+  {c:'nauka',q:'Rok ma cztery pory roku.',t:true,d:2,e:'Tak! Pory roku to wiosna, lato, jesień i zima. Każda z nich wygląda zupełnie inaczej.'},
+  {c:'nauka',q:'Po wtorku jest środa.',t:true,d:2,e:'Tak! Dni tygodnia idą po kolei: poniedziałek, wtorek, a zaraz po nim środa.'},
+  {c:'nauka',q:'Trójkąt ma trzy boki.',t:true,d:2,e:'Tak! Trójkąt ma trzy boki i trzy rogi. Słowo „trój” oznacza właśnie trzy.'},
+  {c:'nauka',q:'Kwadrat ma cztery równe boki.',t:true,d:2,e:'Tak! Kwadrat ma cztery boki i wszystkie są dokładnie takiej samej długości.'},
+  {c:'nauka',q:'Liczba 8 jest większa niż 5.',t:true,d:2,e:'Tak! Gdy liczymy: pięć, sześć, siedem, osiem — osiem jest dalej, więc jest większe.'},
+  {c:'nauka',q:'Liczba 2 jest większa niż 9.',t:false,d:2,e:'Nie. To dziewięć jest większe. Dwa to całkiem mało, a dziewięć już dużo.'},
+  {c:'nauka',q:'Po liczbie 9 jest liczba 10.',t:true,d:2,e:'Tak! Liczymy: siedem, osiem, dziewięć, dziesięć. Zaraz po dziewięć jest dziesięć.'},
+  {c:'nauka',q:'Magnes przyciąga metalowe przedmioty.',t:true,d:2,e:'Tak! Magnes przyciąga rzeczy z metalu, np. spinacze i gwoździe, ale nie przyciągnie papieru ani drewna.'},
+  {c:'nauka',q:'Cień powstaje, gdy coś zasłania światło.',t:true,d:2,e:'Tak! Gdy staniesz w słońcu, twoje ciało zasłania światło i na ziemi pojawia się ciemny cień.'},
+  {c:'nauka',q:'Echo to dźwięk, który wraca do nas.',t:true,d:2,e:'Tak! Gdy krzykniesz w górach albo w tunelu, dźwięk odbija się i wraca do twoich uszu — to echo.'},
+  {c:'nauka',q:'Termometr mierzy, jak jest ciepło lub zimno.',t:true,d:2,e:'Tak! Termometr pokazuje temperaturę — czy na dworze jest ciepło, czy zimno, albo czy ktoś ma gorączkę.'},
+];
+function roundTrueFalse(d,themeKey){
   locked=false; if(!levelState.usedTF)levelState.usedTF=new Set();
-  const hard=levelState.n>=6, pool=FACTS.filter(x=>hard||(x.d||1)===1);
+  const theme=themeKey?TF_THEMES.find(t=>t.key===themeKey):null;
+  const hard=levelState.n>=3;
+  let pool=FACTS.filter(x=>(!theme||theme.cats.indexOf(x.c)>=0)&&(hard||(x.d||1)===1));
+  if(!pool.length)pool=FACTS.filter(x=>(!theme||theme.cats.indexOf(x.c)>=0));
   let f,tries=0; do{ f=pick(pool); }while(levelState.usedTF.has(f.q)&&++tries<25);
   levelState.usedTF.add(f.q);
   promptArea().innerHTML=`<div class="tf-emoji">${TF_EMOJI[f.c]||'❓'}</div><div class="tf-q">${f.q}</div>`;
-  setBubble('Prawda czy fałsz?'); say(f.q);
+  setBubble('Prawda czy fałsz?'); ask(f.q);
   const el=optionsEl(); el.innerHTML='';
   const bt=document.createElement('button'); bt.className='opt tf-true'; bt.textContent='✅ PRAWDA';
   const bf=document.createElement('button'); bf.className='opt tf-false'; bf.textContent='❌ FAŁSZ';
@@ -722,12 +722,14 @@ function roundTrueFalse(d){
 let levelState=null, locked=false;
 function setBubble(t){ bubble().textContent=t; }
 function startLevel(cat,n){ levelState={cat,n,qi:0,wrong:0}; show('game'); $('backBtn').onclick=()=>openMap(cat);
-  const names={letters:'Literki',numbers:'Liczby',logic:'Zagadki',truefalse:'Prawda/Fałsz'};
-  $('lvlLabel').textContent=names[cat]+' • Poziom '+n+'  '; updatePips();
+  const names={letters:'Literki',numbers:'Liczby',logic:'Zagadki'};
+  const nm = cat.indexOf('tf:')===0 ? ((TF_THEMES.find(t=>'tf:'+t.key===cat)||{}).name||'Quiz') : names[cat];
+  $('lvlLabel').textContent=nm+' • Poziom '+n+'  '; updatePips();
   const intro='Poziom '+n+'! Dasz radę!'; setBubble(intro); say(intro); setTimeout(nextRound,650);
 }
 function updatePips(){ let h=''; for(let i=0;i<QPL;i++)h+=`<span class="pip${i<levelState.qi?' on':''}"></span>`; $('pips').innerHTML=h; }
 function nextRound(){ const c=levelState.cat,d=levelState.n;
+  if(c.indexOf('tf:')===0) return roundTrueFalse(d,c.slice(3));
   c==='letters'?roundLetters(d):c==='numbers'?roundNumbers(d):c==='logic'?roundLogic(d):roundTrueFalse(d); }
 function markCorrect(onCorrect){ locked=true; emiHappy(); const p=pick(PRAISE); setBubble(p); say(p);
   if(onCorrect)setTimeout(onCorrect,500); dayRec().correct++; save(); confetti(); setTimeout(advance,1050); }
@@ -754,9 +756,9 @@ function renderType(emoji,word,mode){
   }
   let keys;
   if(mode==='missing'){ const pool=LETTERS_ORD.filter(l=>l!==up[miss]); keys=shuffle([up[miss],...shuffle(pool).slice(0,5)]);
-    setBubble('Wpisz brakującą literę'); say('Wpisz brakującą literę w słowie '+word); }
+    setBubble('Wpisz brakującą literę'); ask('Wpisz brakującą literę w słowie '+word); }
   else{ const ul=uniqueLetters(word), pool=LETTERS_ORD.filter(l=>!ul.includes(l)); keys=shuffle([...ul,...shuffle(pool).slice(0,Math.min(4,pool.length))]);
-    setBubble('Napisz słowo!'); say('Napisz słowo '+word); }
+    setBubble('Napisz słowo!'); ask('Napisz słowo '+word); }
   drawSlots();
   const el=optionsEl();
   el.innerHTML=`<div class="kbd">`+keys.map(k=>`<button class="key" data-k="${k}">${k}</button>`).join('')+`</div>`;
@@ -773,6 +775,7 @@ function emiHappy(){ const e=$('emiGame'); e.classList.remove('happy'); void e.o
 function finishLevel(){
   const {cat,n,wrong}=levelState;
   const rating= wrong===0?3 : wrong<=2?2:1;       // 1-3 gwiazdki za zadanie
+  if(!state.progress[cat])state.progress[cat]={};
   const prev=state.progress[cat][n]||0;
   const gained=Math.max(0, rating-prev);          // przyznaj tylko nadwyżkę (anty-farmienie)
   if(rating>prev)state.progress[cat][n]=rating;
@@ -792,16 +795,21 @@ function finishLevel(){
 
 /* ---------- Map ---------- */
 const CATCLASS={letters:'lt',numbers:'nu',logic:'lo',truefalse:'tf'};
-function maxDone(cat){ let m=0; for(const k in state.progress[cat])if(+k>m)m=+k; return m; }
+function maxDone(cat){ const p=state.progress[cat]||{}; let m=0; for(const k in p)if(+k>m)m=+k; return m; }
 function curLevel(cat){ return clamp(maxDone(cat)+1,1,TOTAL); }
 function openMap(cat){ show('map'); renderMap(cat); }
 function renderMap(cat){
-  const names={letters:'🔤 Mapa Literek',numbers:'🔢 Mapa Liczb',logic:'🧩 Mapa Zagadek',truefalse:'🤔 Prawda czy Fałsz'};
-  const tints={letters:'rgba(255,77,157,.07)',numbers:'rgba(43,179,240,.08)',logic:'rgba(155,89,230,.08)',truefalse:'rgba(52,214,192,.09)'};
-  $('mapTitle').textContent=names[cat]; $('mapScroll').style.background=tints[cat];
-  $('mapBubble').textContent=maxDone(cat)>=TOTAL?'Mapa ukończona! 🎉':'Wybierz poziom!';
+  if(!state.progress[cat])state.progress[cat]={};
+  let title,tint,cc;
+  if(cat.indexOf('tf:')===0){ const t=TF_THEMES.find(x=>'tf:'+x.key===cat)||{name:'Quiz',emoji:'🤔'};
+    title=t.emoji+' '+t.name; tint='rgba(52,214,192,.09)'; cc='tf'; $('mapBack').onclick=showTFMenu; }
+  else { const names={letters:'🔤 Mapa Literek',numbers:'🔢 Mapa Liczb',logic:'🧩 Mapa Zagadek'};
+    const tints={letters:'rgba(255,77,157,.07)',numbers:'rgba(43,179,240,.08)',logic:'rgba(155,89,230,.08)'};
+    title=names[cat]; tint=tints[cat]; cc=CATCLASS[cat]; $('mapBack').onclick=goHome; }
+  $('mapTitle').textContent=title; $('mapScroll').style.background=tint;
+  $('mapBubble').textContent=maxDone(cat)>=TOTAL?'Temat ukończony! 🎉':'Wybierz poziom!';
   const inner=$('mapInner'), stepY=100, padTop=64, padBot=80, H=padTop+(TOTAL-1)*stepY+padBot; inner.style.height=H+'px';
-  const cur=curLevel(cat), cc=CATCLASS[cat];
+  const cur=curLevel(cat);
   const pos=[]; for(let i=0;i<TOTAL;i++)pos.push({x:50+Math.sin(i*0.7)*30,y:padTop+i*stepY});
   let path='M '+pos[0].x+' '+pos[0].y; for(let i=1;i<TOTAL;i++)path+=' L '+pos[i].x+' '+pos[i].y;
   let html=`<svg class="trail" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="#d9cdf0" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 5" vector-effect="non-scaling-stroke"/></svg>`;
@@ -846,15 +854,16 @@ function renderStats(){
       <div class="stat-card"><div class="v">${wLevels}</div><div class="k">🎯 poziomów</div></div></div>
     <div class="bars-wrap"><div class="bars">${week.map(w=>{ const h=Math.round((w.rec.stars/mx)*120);
       return `<div class="bar" style="height:${Math.max(3,h)}px"><span class="bv">${w.rec.stars||''}</span><span class="bl">${w.label}</span></div>`; }).join('')}</div></div>
-    <div class="stat-cards"><div class="stat-card"><div class="v">${compl}/${TOTAL*CAT_KEYS_C.length}</div><div class="k">🗺️ poziomów ukończonych</div></div>
+    <div class="stat-cards"><div class="stat-card"><div class="v">${compl}/${totalLevels()}</div><div class="k">🗺️ poziomów ukończonych</div></div>
       <div class="stat-card"><div class="v">${state.stars}</div><div class="k">⭐ łącznie</div></div></div>`;
 }
 
 /* ---------- Achievements ---------- */
 const CAT_KEYS_C=['letters','numbers','logic','truefalse'];
-function completedCount(){ return CAT_KEYS_C.reduce((a,c)=>a+Object.keys(state.progress[c]).length,0); }
-function mapDone(c){ return Object.keys(state.progress[c]).length>=TOTAL; }
-function hasPerfect(){ return CAT_KEYS_C.some(c=>Object.values(state.progress[c]).some(v=>v>=3)); }
+function completedCount(){ return Object.values(state.progress).reduce((a,p)=>a+Object.keys(p||{}).length,0); }
+function totalLevels(){ return (3+TF_THEMES.length)*TOTAL; }
+function mapDone(c){ return Object.keys(state.progress[c]||{}).length>=TOTAL; }
+function hasPerfect(){ return Object.values(state.progress).some(p=>Object.values(p||{}).some(v=>v>=3)); }
 const ACH=[
   {id:'first',ic:'⭐',t:'Pierwszy krok',d:'Zdobądź 1 gwiazdkę',cond:s=>s.stars>=1},
   {id:'s25',ic:'🌟',t:'Zbieraczka',d:'25 gwiazdek',cond:s=>s.stars>=25},
@@ -923,13 +932,20 @@ function renderWardrobe(){
 }
 
 /* ---------- Navigation ---------- */
-function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $(id).classList.add('on'); $('topStars').style.display=id==='home'?'block':'none'; }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $(id).classList.add('on'); $('topStars').style.display=id==='home'?'block':'none'; $('repeatBtn').style.display=id==='game'?'flex':'none'; }
 function goHome(){ if('speechSynthesis'in window)speechSynthesis.cancel(); show('home'); }
-document.querySelectorAll('.world[data-world]').forEach(b=>{ b.onclick=()=>{ unlockAudio(); openMap(b.dataset.world); }; });
+function showTFMenu(){ show('tfmenu'); renderTFMenu(); }
+function renderTFMenu(){ const g=$('tfGrid'); g.innerHTML='';
+  TF_THEMES.forEach(t=>{ const cat='tf:'+t.key, done=Object.keys(state.progress[cat]||{}).length;
+    const b=document.createElement('button'); b.className='world'; b.style.background='linear-gradient(160deg,'+t.col[0]+','+t.col[1]+')';
+    b.innerHTML='<span class="ico">'+t.emoji+'</span>'+t.name+'<span class="wsub">'+done+'/'+TOTAL+' ⭐</span>';
+    b.onclick=()=>{ unlockAudio(); openMap(cat); }; g.appendChild(b); }); }
+document.querySelectorAll('.world[data-world]').forEach(b=>{ b.onclick=()=>{ unlockAudio(); const w=b.dataset.world; if(w==='truefalse')showTFMenu(); else openMap(w); }; });
 $('shopBtn').onclick=()=>{ unlockAudio(); show('wardrobe'); renderWardrobe(); say('Szatnia!'); };
 $('statsBtn').onclick=()=>{ show('stats'); renderStats(); };
 $('achBtn').onclick=()=>{ show('achv'); renderAch(); };
-$('mapBack').onclick=goHome; $('wdBack').onclick=goHome; $('stBack').onclick=goHome; $('acBack').onclick=goHome; $('homeBtn').onclick=goHome;
+$('mapBack').onclick=goHome; $('wdBack').onclick=goHome; $('stBack').onclick=goHome; $('acBack').onclick=goHome; $('homeBtn').onclick=goHome; $('tfBack').onclick=goHome;
+$('repeatBtn').onclick=repeatAsk;
 document.querySelectorAll('#wdTabs .tab').forEach(t=>{ t.onclick=()=>{ document.querySelectorAll('#wdTabs .tab').forEach(x=>x.classList.remove('on')); t.classList.add('on'); wdTab=t.dataset.tab; renderWardrobe(); }; });
 $('speakBtn').onclick=()=>{ muted=!muted; $('speakBtn').textContent=muted?'🔇':'🔊'; if(!muted){ unlockAudio(); say('Dźwięk włączony'); } else if('speechSynthesis'in window)speechSynthesis.cancel(); };
 
