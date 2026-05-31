@@ -16,7 +16,7 @@
     --green:#58cc62; --green-d:#46a852; --gold:#ffc83d; --gold-d:#e8a90c;
     --blue:#2bb3f0; --blue-d:#1f8fc4;
     --text:#4a3a6b; --muted:#9385b3; --card:#ffffff; --line:#ece4f7;
-    --shadow:rgba(120,90,170,.18); --btnsh:rgba(0,0,0,.16);
+    --shadow:rgba(120,90,170,.18); --btnsh:#d3c8ea;
     --bg:linear-gradient(180deg,#f2f6ff 0%,#e9edff 100%);
     --fhead:'Fredoka', sans-serif; --fbody:'Nunito', sans-serif;
     --cH:#ffce5a; --cHd:#efab2e; --cHl:#ffe49b;
@@ -59,13 +59,13 @@
   .world{ width:clamp(102px,22vw,160px); aspect-ratio:1/1; border-radius:28px; border:none; cursor:pointer; color:#fff;
     font-family:var(--fhead); font-weight:700; font-size:clamp(14px,3.2vw,20px);
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-    box-shadow:0 9px 0 var(--btnsh),0 12px 22px var(--shadow); transition:transform .12s, box-shadow .12s; }
+    box-shadow:0 9px 0 var(--leg,#c9bfe0),0 12px 22px var(--shadow); transition:transform .12s, box-shadow .12s; }
   .world .ico{ font-size:clamp(34px,8vw,58px); line-height:1; }
-  .world:active{ transform:translateY(7px); box-shadow:0 2px 0 var(--btnsh); }
-  .w-letters{ background:linear-gradient(160deg,#ff6fb0,#ff3d8e); }
-  .w-numbers{ background:linear-gradient(160deg,#46c8f5,#1f8fc4); }
-  .w-logic{ background:linear-gradient(160deg,#b06bff,#8338d6); }
-  .w-tf{ background:linear-gradient(160deg,#34d6c0,#159c8b); }
+  .world:active{ transform:translateY(7px); box-shadow:0 2px 0 var(--leg,#c9bfe0); }
+  .w-letters{ background:linear-gradient(160deg,#ff6fb0,#ff3d8e); --leg:#c41f6b; }
+  .w-numbers{ background:linear-gradient(160deg,#46c8f5,#1f8fc4); --leg:#15688f; }
+  .w-logic{ background:linear-gradient(160deg,#b06bff,#8338d6); --leg:#5e22a0; }
+  .w-tf{ background:linear-gradient(160deg,#34d6c0,#159c8b); --leg:#0e6f63; }
   .world .wsub{ font-size:11px; opacity:.92; font-weight:700; margin-top:3px; }
   .tf-intro{ text-align:center; font-family:var(--fhead); font-weight:700; color:var(--muted); font-size:clamp(15px,4vw,20px); padding:6px; flex:none; }
   .menu-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
@@ -117,6 +117,7 @@
   .stage{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:1.3vh; padding:0 14px 14px; overflow:hidden; min-height:0; }
   .emi-row{ display:flex; align-items:center; gap:14px; max-width:760px; width:100%; justify-content:center; }
   .emi{ width:clamp(66px,14vw,110px); flex:none; position:relative; }
+  #emiHome svg, .emi svg, .card .big svg{ filter:drop-shadow(0 5px 5px rgba(120,90,170,.3)); }
   .bubble{ background:var(--card); color:var(--text); border-radius:22px; padding:12px 18px; font-family:var(--fhead);
     font-size:clamp(16px,3.9vw,25px); font-weight:600; position:relative; max-width:70%; box-shadow:0 5px 0 var(--btnsh); }
   .bubble:after{ content:""; position:absolute; left:-12px; top:24px; border:12px solid transparent; border-right-color:var(--card); }
@@ -135,6 +136,8 @@
   .opt.wrong{ animation:shake .4s; opacity:.45; }
   @keyframes shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
   .shape-svg{ width:62%; height:62%; }
+  .emo3d{ width:1em; height:1em; object-fit:contain; vertical-align:-0.14em; }
+  .opt.pic .emo3d{ width:84%; height:84%; }
   /* typing / keyboard */
   .type-word{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
   .slot{ width:clamp(46px,11vw,68px); height:clamp(56px,13vw,82px); border-radius:14px; background:var(--card);
@@ -380,13 +383,17 @@ function validate(){ if(!BG[state.bg])state.bg='jasne'; if(!HAIR[state.hair])sta
 
 /* ---------- Character SVG ---------- */
 const SKIN='#ffe2c2';
-function face(){ return `
-  <circle cx="100" cy="100" r="48" fill="${SKIN}"/>
-  <ellipse cx="83" cy="100" rx="8" ry="10" fill="#fff"/><ellipse cx="117" cy="100" rx="8" ry="10" fill="#fff"/>
-  <circle cx="84" cy="102" r="5.5" fill="#3a2a1a"/><circle cx="118" cy="102" r="5.5" fill="#3a2a1a"/>
-  <circle cx="86" cy="100" r="1.8" fill="#fff"/><circle cx="120" cy="100" r="1.8" fill="#fff"/>
-  <ellipse cx="74" cy="116" rx="7" ry="4.5" fill="#ffb0c8" opacity=".6"/><ellipse cx="126" cy="116" rx="7" ry="4.5" fill="#ffb0c8" opacity=".6"/>
-  <path d="M88 118 q12 12 24 0" stroke="#c8607f" stroke-width="3.5" fill="none" stroke-linecap="round"/>`; }
+let GID=0;
+function face(){ const u=++GID; return `
+  <defs><radialGradient id="sk${u}" cx="40%" cy="30%" r="78%">
+    <stop offset="0" stop-color="#fff1e3"/><stop offset="58%" stop-color="${SKIN}"/><stop offset="100%" stop-color="#f1bf95"/></radialGradient></defs>
+  <circle cx="100" cy="100" r="48" fill="url(#sk${u})"/>
+  <ellipse cx="78" cy="84" rx="16" ry="11" fill="#fff" opacity=".22"/>
+  <ellipse cx="83" cy="100" rx="8" ry="10.5" fill="#fff"/><ellipse cx="117" cy="100" rx="8" ry="10.5" fill="#fff"/>
+  <circle cx="84" cy="102" r="5.6" fill="#3a2a1a"/><circle cx="118" cy="102" r="5.6" fill="#3a2a1a"/>
+  <circle cx="86" cy="99" r="2.1" fill="#fff"/><circle cx="120" cy="99" r="2.1" fill="#fff"/>
+  <ellipse cx="74" cy="116" rx="7.5" ry="5" fill="#ff9ec2" opacity=".55"/><ellipse cx="126" cy="116" rx="7.5" ry="5" fill="#ff9ec2" opacity=".55"/>
+  <path d="M88 118 q12 12 24 0" stroke="#c8607f" stroke-width="3.6" fill="none" stroke-linecap="round"/>`; }
 function gsvg(i){ return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;overflow:visible">${i}</svg>`; }
 const cH='var(--cH)', cHd='var(--cHd)', cHl='var(--cHl)';
 const STYLES={
@@ -479,7 +486,7 @@ const LETTERS={ A:['Arbuz','🍉'],B:['Balon','🎈'],C:['Cytryna','🍋'],D:['D
   G:['Gruszka','🍐'],H:['Hulajnoga','🛴'],I:['Igła','🪡'],J:['Jabłko','🍎'],K:['Kot','🐱'],L:['Lody','🍦'],Ł:['Łódka','⛵'],
   M:['Miś','🧸'],N:['Nos','👃'],O:['Oko','👁️'],P:['Pies','🐶'],R:['Ryba','🐟'],S:['Słoń','🐘'],T:['Tort','🎂'],
   U:['Ucho','👂'],W:['Wąż','🐍'],Z:['Zegar','⏰'] };
-const WORDS=[['ul','🐝'],['kot','🐱'],['dom','🏠'],['nos','👃'],['oko','👁️'],['sok','🧃'],['lew','🦁'],['rak','🦞'],
+const WORDS=[['lis','🦊'],['kot','🐱'],['dom','🏠'],['nos','👃'],['oko','👁️'],['sok','🧃'],['lew','🦁'],['rak','🦞'],
   ['ser','🧀'],['las','🌲'],['pies','🐶'],['lody','🍦'],['ryba','🐟'],['miś','🧸'],['ucho','👂'],['tort','🎂'],
   ['mysz','🐭'],['sowa','🦉'],['kura','🐔'],['koza','🐐']];
 function uniqueLetters(w){ return [...new Set(w.toUpperCase().split(''))]; }
@@ -514,6 +521,13 @@ const SHAPES=['circle','square','triangle','star','heart'];
 function sizedShape(k,c,pct){ return shapeSVG(k,c).replace('class="shape-svg"', `class="shape-svg" style="width:${pct}%;height:${pct}%"`); }
 const PAIRS=[['🧦','👟'],['🐝','🍯'],['🔑','🔒'],['🖌️','🎨'],['🦴','🐶'],['🥕','🐰'],['🧀','🐭'],['🍼','👶'],['🧤','❄️'],['☔','🌧️'],['🐤','🥚'],['🐟','🌊']];
 
+/* ---------- Obrazki 3D (Microsoft Fluent Emoji) ---------- */
+const FLUENT_BASE='https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/';
+const FLUENT={'🍎':'Red apple','⭐':'Star','🎈':'Balloon','🍓':'Strawberry','🐞':'Lady beetle','🌸':'Cherry blossom','🐠':'Tropical fish','🍪':'Cookie','🦋':'Butterfly','🍒':'Cherries','🐝':'Honeybee','🌟':'Glowing star','🧁':'Cupcake','🌷':'Tulip','🍉':'Watermelon','🍋':'Lemon','🏠':'House','📺':'Television','🦭':'Seal','🍐':'Pear','🛴':'Kick scooter','🪡':'Sewing needle','🍦':'Soft ice cream','⛵':'Sailboat','🧸':'Teddy bear','🐶':'Dog face','🐟':'Fish','🐘':'Elephant','🎂':'Birthday cake','🐍':'Snake','⏰':'Alarm clock','🦊':'Fox','🧃':'Beverage box','🦁':'Lion','🦞':'Lobster','🧀':'Cheese wedge','🌲':'Evergreen tree','🐭':'Mouse face','🦉':'Owl','🐔':'Chicken','🐐':'Goat','🧦':'Socks','👟':'Running shoe','🍯':'Honey pot','🔑':'Key','🔒':'Locked','🎨':'Artist palette','🦴':'Bone','🥕':'Carrot','🐰':'Rabbit face','🍼':'Baby bottle','🧤':'Gloves','❄️':'Snowflake','☔':'Umbrella with rain drops','🐤':'Baby chick','🥚':'Egg','🌊':'Water wave','🚀':'Rocket','🚗':'Automobile','🧠':'Brain','🐻':'Bear','🐸':'Frog','🐯':'Tiger face','🐮':'Cow face','🍌':'Banana','🍇':'Grapes','🍑':'Peach','🥝':'Kiwi fruit','🍊':'Tangerine','🚌':'Bus','✈️':'Airplane','🚲':'Bicycle','🚂':'Locomotive','🚓':'Police car','🚜':'Tractor','🍕':'Pizza','🍔':'Hamburger','🍟':'French fries','🍩':'Doughnut','🍰':'Shortcake','🥪':'Sandwich','🦄':'Unicorn','🐉':'Dragon','🐱':'Cat face','🌧️':'Cloud with rain','🌿':'Herb','🌦️':'Sun behind rain cloud','👁️':'Eye','🐾':'Paw prints'};
+function EMO(e,cls){ const nm=FLUENT[e]; if(!nm)return e||'';
+  const file=nm.toLowerCase().replace(/ /g,'_')+'_3d.png';
+  return `<img class="emo3d${cls?' '+cls:''}" alt="${e}" src="${FLUENT_BASE+encodeURIComponent(nm)}/3D/${file}" onerror="this.replaceWith('${e}')">`; }
+
 /* ============== ROUND GENERATORS (d=level) ============== */
 function roundLetters(d){
   const tv=['p2l','l2p']; if(d>=5)tv.push('missing'); if(d>=11)tv.push('spell');
@@ -527,8 +541,8 @@ function roundLetters(d){
   const target=pick(pool), [word,emoji]=LETTERS[target], distract=shuffle(pool.filter(k=>k!==target)).slice(0,nOpt-1);
   if(variant==='l2p'){ promptArea().innerHTML=`<div class="prompt-big">${target}</div>`;
     setBubble(`Znajdź obrazek na literę ${target}`); ask(`Litera ${target}. Znajdź obrazek, który zaczyna się na ${target}.`);
-    renderOptions(shuffle([{k:target,c:1},...distract.map(k=>({k,c:0}))]).map(o=>({html:LETTERS[o.k][1],cls:'pic',correct:!!o.c,speak:LETTERS[o.k][0]})), ()=>say(`${target} jak ${word}!`));
-  }else{ promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(64px,18vw,140px)">${emoji}</div>`;
+    renderOptions(shuffle([{k:target,c:1},...distract.map(k=>({k,c:0}))]).map(o=>({html:EMO(LETTERS[o.k][1]),cls:'pic',correct:!!o.c,speak:LETTERS[o.k][0]})), ()=>say(`${target} jak ${word}!`));
+  }else{ promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(64px,18vw,140px)">${EMO(emoji)}</div>`;
     setBubble('Na jaką literę zaczyna się ten obrazek?'); ask(`${word}. Na jaką literę zaczyna się ${word}?`);
     renderOptions(shuffle([{k:target,c:1},...distract.map(k=>({k,c:0}))]).map(o=>({html:o.k,cls:'letter',correct:!!o.c,speak:o.k})), ()=>say(`${word} na literę ${target}!`));
   }
@@ -538,7 +552,7 @@ function roundNumbers(d){
   if(d>=12)variants.push('add'); if(d>=15)variants.push('sub'); if(d>=20)variants.push('missadd');
   const v=pick(variants), maxN=clamp(3+d,5,9);
   if(v==='count'){ const n=1+rnd(maxN), e=pick(COUNT_EMOJI);
-    promptArea().innerHTML=`<div class="prompt-objs">${(e+' ').repeat(n).trim()}</div>`;
+    promptArea().innerHTML=`<div class="prompt-objs">${(EMO(e)+' ').repeat(n).trim()}</div>`;
     setBubble('Policz i dotknij liczby!'); ask('Policz, ile tu jest. Dotknij właściwej liczby.');
     let s=new Set([n]); while(s.size<3)s.add(1+rnd(maxN));
     renderOptions(shuffle([...s]).map(x=>({html:x,cls:'num',correct:x===n,speak:nw(x)})), ()=>say(`Tak! ${nw(n)}`));
@@ -546,7 +560,7 @@ function roundNumbers(d){
     promptArea().innerHTML=`<div class="prompt-big">${n}</div>`;
     setBubble(`Dotknij grupy z ${nw(n)}!`); ask(`Liczba ${nw(n)}. Dotknij grupy, w której jest ${nw(n)}.`);
     let s=new Set([n]); while(s.size<3)s.add(1+rnd(clamp(maxN,5,7)));
-    renderOptions(shuffle([...s]).map(c=>({html:(e+' ').repeat(c).trim(),cls:'group',correct:c===n,speak:nw(c)})), ()=>say(`Brawo! ${nw(n)}`));
+    renderOptions(shuffle([...s]).map(c=>({html:(EMO(e)+' ').repeat(c).trim(),cls:'group',correct:c===n,speak:nw(c)})), ()=>say(`Brawo! ${nw(n)}`));
   }else if(v==='largest'){ let s=new Set(); while(s.size<3)s.add(1+rnd(9)); const arr=[...s], mx=Math.max(...arr);
     promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(22px,5.5vw,34px);color:var(--magenta)">Która liczba jest największa?</div>`;
     setBubble('Dotknij największej!'); ask('Która liczba jest największa? Dotknij jej.');
@@ -588,9 +602,9 @@ function roundLogic(d){
     setBubble(big?'Który jest największy?':'Który jest najmniejszy?'); ask(big?'Dotknij największego kształtu.':'Dotknij najmniejszego kształtu.'); promptArea().innerHTML='';
     renderOptions(shuffle(sizes).map(sz=>({html:sizedShape(sh,col,sz),cls:'shape',correct:sz===target})), ()=>say(big?'Tak! Ten był największy.':'Tak! Ten był najmniejszy.'));
   }else if(v==='pairs'){ const p=pick(PAIRS), others=shuffle(PAIRS.filter(x=>x!==p)).slice(0,nOpt-1).map(x=>x[rnd(2)]);
-    promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(60px,16vw,118px)">${p[0]}</div>`;
+    promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(60px,16vw,118px)">${EMO(p[0])}</div>`;
     setBubble('Co do tego pasuje?'); ask('Co pasuje do tego obrazka? Dotknij tego, co do niego pasuje.');
-    renderOptions(shuffle([{e:p[1],k:1},...others.map(e=>({e,k:0}))]).map(o=>({html:o.e,cls:'pic',correct:!!o.k})), ()=>say('Tak! To do siebie pasuje.'));
+    renderOptions(shuffle([{e:p[1],k:1},...others.map(e=>({e,k:0}))]).map(o=>({html:EMO(o.e),cls:'pic',correct:!!o.k})), ()=>say('Tak! To do siebie pasuje.'));
   }else if(v==='pattern'){ const ncol=d>=10?3:2, cols=shuffle(COLORS).slice(0,ncol), sh=pick(SHAPES), len=(ncol===3?6:4);
     const seq=[]; for(let i=0;i<len;i++)seq.push(cols[i%ncol]); const next=cols[len%ncol], wrong=cols[(len+1)%ncol];
     promptArea().innerHTML=`<div style="display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap">`
@@ -601,7 +615,7 @@ function roundLogic(d){
     renderOptions(shuffle(opts).map(o=>({html:shapeSVG(sh,o.c[1]),cls:'shape',correct:!!o.k,speak:o.c[0]})), ()=>say('Brawo! Zgadłaś wzór.'));
   }else{ const ck=shuffle(CAT_KEYS), main=ck[0], oddC=ck[1], mains=shuffle(CATEGORIES[main]).slice(0,nOpt-1), odd=pick(CATEGORIES[oddC]);
     setBubble('Co tu nie pasuje?'); ask('Trzy z nich są podobne, a jedno nie pasuje. Dotknij tego innego.'); promptArea().innerHTML='';
-    renderOptions(shuffle([{e:odd,k:1},...mains.map(e=>({e,k:0}))]).map(o=>({html:o.e,cls:'pic',correct:!!o.k})), ()=>say('Tak! To nie pasowało do reszty.'));
+    renderOptions(shuffle([{e:odd,k:1},...mains.map(e=>({e,k:0}))]).map(o=>({html:EMO(o.e),cls:'pic',correct:!!o.k})), ()=>say('Tak! To nie pasowało do reszty.'));
   }
 }
 
@@ -609,11 +623,11 @@ function roundLogic(d){
 const TF_EMOJI={ zwierzęta:'🐾', natura:'🌿', ciało:'🧒', kosmos:'🚀', jedzenie:'🍎',
   pojazdy:'🚗', kolory:'🎨', pogoda:'🌦️', dom:'🏠', zawody:'👩‍🚒', nauka:'🧠' };
 const TF_THEMES=[
-  {key:'zwierzeta', name:'Zwierzęta', emoji:'🐾', col:['#34d6c0','#159c8b'], cats:['zwierzęta']},
-  {key:'przyroda', name:'Przyroda', emoji:'🌿', col:['#6fd86f','#3ea53e'], cats:['natura','pogoda','kolory']},
-  {key:'kosmos', name:'Świat i Kosmos', emoji:'🚀', col:['#6aa0ff','#3a6ff0'], cats:['kosmos','pojazdy']},
-  {key:'czlowiek', name:'Ja i Dom', emoji:'🧒', col:['#ff9a6b','#e8682e'], cats:['ciało','dom','jedzenie','zawody']},
-  {key:'madra', name:'Mądra Sowa', emoji:'🦉', col:['#b58cff','#7d4ad6'], cats:['nauka']},
+  {key:'zwierzeta', name:'Zwierzęta', emoji:'🐾', col:['#34d6c0','#159c8b'], leg:'#0e6f63', cats:['zwierzęta']},
+  {key:'przyroda', name:'Przyroda', emoji:'🌿', col:['#6fd86f','#3ea53e'], leg:'#2c7a2c', cats:['natura','pogoda','kolory']},
+  {key:'kosmos', name:'Świat i Kosmos', emoji:'🚀', col:['#6aa0ff','#3a6ff0'], leg:'#2a52c0', cats:['kosmos','pojazdy']},
+  {key:'czlowiek', name:'Ja i Dom', emoji:'🧒', col:['#ff9a6b','#e8682e'], leg:'#c44e1e', cats:['ciało','dom','jedzenie','zawody']},
+  {key:'madra', name:'Mądra Sowa', emoji:'🦉', col:['#b58cff','#7d4ad6'], leg:'#5e34a8', cats:['nauka']},
 ];
 const FACTS=[
   {c:'zwierzęta',q:'Pszczoły robią miód z nektaru kwiatów.',t:true,d:1,e:'Tak! Pszczoły zbierają słodki nektar z kwiatów i w ulu zamieniają go w miód. Przy okazji pomagają kwiatom rosnąć.'},
@@ -794,7 +808,7 @@ function roundTrueFalse(d,themeKey){
   const f=pick(avail);
   levelState.usedTF.add(f.q);
   rec.push(f.q); const cap=Math.max(8,pool.length-6); while(rec.length>cap)rec.shift();
-  promptArea().innerHTML=`<div class="tf-emoji">${TF_EMOJI[f.c]||'❓'}</div><div class="tf-q">${f.q}</div>`;
+  promptArea().innerHTML=`<div class="tf-emoji">${EMO(TF_EMOJI[f.c]||'❓')}</div><div class="tf-q">${f.q}</div>`;
   setBubble('Prawda czy fałsz?'); ask(f.q);
   const el=optionsEl(); el.innerHTML='';
   const bt=document.createElement('button'); bt.className='opt tf-true'; bt.textContent='✅ PRAWDA';
@@ -844,7 +858,7 @@ function renderType(emoji,word,mode){
   let pos = mode==='spell' ? 0 : miss;
   const filled = up.map((ch,i)=> mode==='spell' ? '' : (i===miss?'':ch));
   function drawSlots(){
-    promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(54px,15vw,116px)">${emoji}</div>`
+    promptArea().innerHTML=`<div class="prompt-objs" style="font-size:clamp(54px,15vw,116px)">${EMO(emoji)}</div>`
       +`<div class="type-word">`+up.map((ch,i)=>{ const val=filled[i];
         const cls='slot'+(val===''&&i===pos?' active':'')+(val===''&&i===miss?' miss':'');
         return `<div class="${cls}">${val}</div>`; }).join('')+`</div>`;
@@ -990,9 +1004,9 @@ let toastT=null; function toast(m){ const el=$('unlockToast'); el.textContent=m;
 function applyLook(){
   const f=FONTS[state.font]; document.documentElement.style.setProperty('--fhead',f.head); document.documentElement.style.setProperty('--fbody',f.body);
   const hc=HAIR[state.hair].c; document.documentElement.style.setProperty('--cH',hc[0]); document.documentElement.style.setProperty('--cHd',hc[1]); document.documentElement.style.setProperty('--cHl',hc[2]);
-  const svg=STYLES[state.style].svg(); $('emiHome').innerHTML=svg; $('emiGame').innerHTML=svg; $('emiMap').innerHTML=svg;
+  $('emiHome').innerHTML=STYLES[state.style].svg(); $('emiGame').innerHTML=STYLES[state.style].svg(); $('emiMap').innerHTML=STYLES[state.style].svg();
   document.body.style.background=BG[state.bg].css;
-  $('petHome').textContent=PETS[state.pet]?PETS[state.pet].emoji:'';
+  $('petHome').innerHTML=PETS[state.pet]&&PETS[state.pet].emoji?EMO(PETS[state.pet].emoji):'';
 }
 
 /* ---------- Wardrobe ---------- */
@@ -1010,7 +1024,7 @@ function renderWardrobe(){
       add(`<div class="swatch" style="background:${it.css}"></div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
         state.bg===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.bg=k; save(); applyLook(); renderWardrobe(); }); });
   }else if(wdTab==='pet'){ PET_ORDER.forEach(k=>{ const it=PETS[k], lk=state.stars<it.need;
-      add(`<div class="big">${it.emoji||'🚫'}</div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
+      add(`<div class="big">${it.emoji?EMO(it.emoji):'🚫'}</div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
         state.pet===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.pet=k; save(); applyLook(); renderWardrobe(); checkAch(); if(it.emoji)say(it.name); }); });
   }else if(wdTab==='font'){ FONT_ORDER.forEach(k=>{ const it=FONTS[k];
       add(`<div class="fontprev"><div class="fp-h" style="font-family:${it.head};color:var(--text)">Emilka 123</div><div class="fp-b" style="font-family:${it.body}">Brawo, super! Litery i liczby</div></div><div class="lbl">${it.name}</div>`,
@@ -1032,7 +1046,7 @@ function goHome(){ if('speechSynthesis'in window)speechSynthesis.cancel(); show(
 function showTFMenu(){ show('tfmenu'); renderTFMenu(); }
 function renderTFMenu(){ const g=$('tfGrid'); g.innerHTML='';
   TF_THEMES.forEach(t=>{ const cat='tf:'+t.key, done=Object.keys(state.progress[cat]||{}).length;
-    const b=document.createElement('button'); b.className='world'; b.style.background='linear-gradient(160deg,'+t.col[0]+','+t.col[1]+')';
+    const b=document.createElement('button'); b.className='world'; b.style.background='linear-gradient(160deg,'+t.col[0]+','+t.col[1]+')'; b.style.setProperty('--leg',t.leg);
     b.innerHTML='<span class="ico">'+t.emoji+'</span>'+t.name+'<span class="wsub">'+done+'/'+TOTAL+' ⭐</span>';
     b.onclick=()=>{ unlockAudio(); openMap(cat); }; g.appendChild(b); }); }
 document.querySelectorAll('.world[data-world]').forEach(b=>{ b.onclick=()=>{ unlockAudio(); const w=b.dataset.world; if(w==='truefalse')showTFMenu(); else openMap(w); }; });
