@@ -20,6 +20,7 @@
     --bg:linear-gradient(180deg,#f2f6ff 0%,#e9edff 100%);
     --fhead:'Fredoka', sans-serif; --fbody:'Nunito', sans-serif;
     --cH:#ffce5a; --cHd:#efab2e; --cHl:#ffe49b;
+    --cSkL:#fff1e3; --cSk:#ffe2c2; --cSkD:#f1bf95;
     --mapTint:rgba(255,77,157,.08);
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; }
@@ -150,6 +151,21 @@
     font-size:clamp(24px,6vw,36px); box-shadow:0 5px 0 #5e22a0; cursor:pointer; }
   .key:active{ transform:translateY(4px); box-shadow:0 1px 0 #5e22a0; }
   .key.wrong{ animation:shake .4s; }
+  /* drag: dopasuj / ułóż po kolei */
+  .dragwrap{ display:flex; flex-direction:column; align-items:center; gap:2.2vh; width:100%; }
+  .zones,.tokens{ display:flex; gap:clamp(10px,2.6vw,20px); justify-content:center; align-items:center; flex-wrap:wrap; }
+  .zone{ width:clamp(92px,21vw,138px); height:clamp(92px,21vw,138px); border-radius:24px; background:var(--card); box-shadow:0 6px 0 var(--btnsh);
+    display:flex; align-items:center; justify-content:center; font-size:clamp(40px,10vw,70px); font-family:var(--fhead); color:var(--violet); position:relative; }
+  .zone .slot2{ position:absolute; inset:6px; border-radius:18px; border:3px dashed #cdbfe8; }
+  .zone.filled .slot2{ display:none; } .zone.over{ box-shadow:0 6px 0 var(--btnsh),0 0 0 5px var(--magenta); }
+  .zone.right{ background:linear-gradient(160deg,#dffbe6,#bff0cd); }
+  .token{ width:clamp(74px,17vw,112px); height:clamp(74px,17vw,112px); border-radius:22px; cursor:grab; touch-action:none; user-select:none;
+    background:linear-gradient(160deg,#b06bff,#8338d6); box-shadow:0 7px 0 #5e22a0; color:#fff; font-family:var(--fhead);
+    display:flex; align-items:center; justify-content:center; font-size:clamp(38px,9vw,64px); transition:box-shadow .1s; }
+  .token.pic{ background:var(--card); box-shadow:0 7px 0 var(--btnsh); }
+  .token.dragging{ box-shadow:0 14px 20px rgba(74,58,107,.35); }
+  .drag-hint{ font-family:var(--fhead); font-weight:700; color:var(--magenta); font-size:clamp(15px,4vw,22px); text-align:center; }
+  .emo-grp{ font-size:.4em; line-height:1.05; display:inline-flex; flex-wrap:wrap; gap:2px; max-width:5.2em; justify-content:center; }
   /* Prawda / Fałsz */
   .tf-emoji{ font-size:clamp(56px,15vw,116px); text-align:center; line-height:1; }
   .tf-q{ font-family:var(--fhead); font-weight:700; font-size:clamp(21px,5.4vw,34px); text-align:center; max-width:620px; margin:6px auto 0; color:var(--text); line-height:1.25; }
@@ -300,6 +316,8 @@
     <div class="tabs" id="wdTabs">
       <button class="tab on" data-tab="postac">🧒 Postać</button>
       <button class="tab" data-tab="wlosy">💇 Włosy</button>
+      <button class="tab" data-tab="skora">🧒 Buźka</button>
+      <button class="tab" data-tab="dodatki">👑 Dodatki</button>
       <button class="tab" data-tab="tlo">🌈 Tło</button>
       <button class="tab" data-tab="pet">🐾 Przyjaciel</button>
       <button class="tab" data-tab="font">✏️ Czcionka</button>
@@ -337,7 +355,7 @@ let UNLOCK_ALL=true; // TESTOWO: wszystkie poziomy odblokowane (ustaw na false, 
 
 /* ---------- Persisted state ---------- */
 const SAVE='emilka_save_v4';
-let state={ stars:0, style:'idol', bg:'jasne', pet:'none', hair:'blonde', font:'fredoka', voiceName:null,
+let state={ stars:0, style:'idol', bg:'jasne', pet:'none', hair:'blonde', skin:'jasna', acc:'none', font:'fredoka', voiceName:null,
   progress:{letters:{},numbers:{},logic:{},truefalse:{}}, stats:{}, ach:{}, styleChanged:false };
 try{ const s=JSON.parse(localStorage.getItem(SAVE)||'{}'); Object.assign(state,s);
   state.progress=Object.assign({letters:{},numbers:{},logic:{},truefalse:{}},state.progress||{});
@@ -366,27 +384,58 @@ const BG={
   jasne:{ name:'Jasne', need:0, css:'linear-gradient(180deg,#f2f6ff,#e9edff)' },
   candy:{ name:'Cukierki', need:0, css:'linear-gradient(180deg,#fff0f7,#ffe2f0)' },
   mleczne:{ name:'Brzoskwinia', need:12, css:'linear-gradient(180deg,#fff6ec,#ffe9dc)' },
-  ocean:{ name:'Ocean', need:24, css:'linear-gradient(180deg,#e8f8ff,#d4f0ff)' },
-  forest:{ name:'Łąka', need:40, css:'linear-gradient(180deg,#eefbe9,#d8f5da)' },
-  rainbow:{ name:'Tęcza', need:65, css:'linear-gradient(140deg,#ffe0ef,#fff3d6,#e2f6ff,#efe2ff)' },
+  mieta:{ name:'Mięta', need:20, css:'linear-gradient(180deg,#e8fbf3,#d2f3e6)' },
+  ocean:{ name:'Ocean', need:28, css:'linear-gradient(180deg,#e8f8ff,#d4f0ff)' },
+  lawenda:{ name:'Lawenda', need:38, css:'linear-gradient(180deg,#f3ecff,#e6d9ff)' },
+  forest:{ name:'Łąka', need:48, css:'linear-gradient(180deg,#eefbe9,#d8f5da)' },
+  rainbow:{ name:'Tęcza', need:70, css:'linear-gradient(140deg,#ffe0ef,#fff3d6,#e2f6ff,#efe2ff)' },
 };
-const BG_ORDER=['jasne','candy','mleczne','ocean','forest','rainbow'];
+const BG_ORDER=['jasne','candy','mleczne','mieta','ocean','lawenda','forest','rainbow'];
 const PETS={
   none:{ name:'Brak', emoji:'', need:0 }, cat:{ name:'Kotek', emoji:'🐱', need:8 },
-  dog:{ name:'Piesek', emoji:'🐶', need:8 }, bunny:{ name:'Króliczek', emoji:'🐰', need:20 },
-  butterfly:{ name:'Motylek', emoji:'🦋', need:35 }, unicorn:{ name:'Jednorożec', emoji:'🦄', need:55 },
-  dragon:{ name:'Smoczek', emoji:'🐉', need:85 },
+  dog:{ name:'Piesek', emoji:'🐶', need:8 }, frog:{ name:'Żabka', emoji:'🐸', need:16 },
+  bunny:{ name:'Króliczek', emoji:'🐰', need:22 }, fox:{ name:'Lisek', emoji:'🦊', need:30 },
+  butterfly:{ name:'Motylek', emoji:'🦋', need:38 }, owl:{ name:'Sówka', emoji:'🦉', need:48 },
+  unicorn:{ name:'Jednorożec', emoji:'🦄', need:60 }, dragon:{ name:'Smoczek', emoji:'🐉', need:85 },
 };
-const PET_ORDER=['none','cat','dog','bunny','butterfly','unicorn','dragon'];
+const PET_ORDER=['none','cat','dog','frog','bunny','fox','butterfly','owl','unicorn','dragon'];
+const SKINS={
+  jasna:{ name:'Jasna', need:0, c:['#fff1e3','#ffe2c2','#f1bf95'] },
+  brzoskwinia:{ name:'Brzoskwinia', need:0, c:['#ffe7d2','#fbcfa3','#e3a973'] },
+  opalona:{ name:'Opalona', need:18, c:['#f7d8ab','#e7b67c','#cb9255'] },
+  sniada:{ name:'Śniada', need:36, c:['#ecc295','#cf9d68','#a9763f'] },
+  ciemna:{ name:'Ciemna', need:54, c:['#cda478','#a9794d','#7e5230'] },
+};
+const SKIN_ORDER=['jasna','brzoskwinia','opalona','sniada','ciemna'];
+const ACC={
+  none:{ name:'Brak', need:0 }, bow:{ name:'Kokarda', need:0 }, glasses:{ name:'Okulary', need:10 },
+  crown:{ name:'Korona', need:22 }, flower:{ name:'Kwiatek', need:34 }, star:{ name:'Gwiazdka', need:46 },
+};
+const ACC_ORDER=['none','bow','glasses','crown','flower','star'];
 function validate(){ if(!BG[state.bg])state.bg='jasne'; if(!HAIR[state.hair])state.hair='blonde';
-  if(!STYLES[state.style])state.style='idol'; if(!PETS[state.pet])state.pet='none'; if(!FONTS[state.font])state.font='fredoka'; }
+  if(!STYLES[state.style])state.style='idol'; if(!PETS[state.pet])state.pet='none'; if(!FONTS[state.font])state.font='fredoka';
+  if(!SKINS[state.skin])state.skin='jasna'; if(!ACC[state.acc])state.acc='none'; }
 
 /* ---------- Character SVG ---------- */
-const SKIN='#ffe2c2';
+const SKIN='var(--cSk)';
 let GID=0;
+function accSVG(){ const a=state.acc;
+  if(a==='crown')return `<path d="M62 58 L74 34 L88 50 L100 30 L112 50 L126 34 L138 58 Q100 70 62 58 Z" fill="#ffd23d" stroke="#e0a90c" stroke-width="2.5" stroke-linejoin="round"/><circle cx="100" cy="40" r="4.5" fill="#ff5cae"/><circle cx="74" cy="40" r="3.5" fill="#3de0ff"/><circle cx="126" cy="40" r="3.5" fill="#3de0ff"/>`;
+  if(a==='glasses')return `<circle cx="83" cy="101" r="15" fill="#bfe6ff" opacity=".4"/><circle cx="117" cy="101" r="15" fill="#bfe6ff" opacity=".4"/><g fill="none" stroke="#4a3a6b" stroke-width="4"><circle cx="83" cy="101" r="15"/><circle cx="117" cy="101" r="15"/><path d="M98 101 h4"/><path d="M52 98 l16 4"/><path d="M148 98 l-16 4"/></g>`;
+  if(a==='bow')return `<g transform="translate(100 44)"><path d="M0 0 L-20 -11 L-20 11 Z" fill="#ff3d8e"/><path d="M0 0 L20 -11 L20 11 Z" fill="#ff3d8e"/><circle r="6.5" fill="#ff6fae"/></g>`;
+  if(a==='flower')return `<g transform="translate(146 64)"><circle cx="0" cy="-8" r="7" fill="#ff5cae"/><circle cx="8" cy="0" r="7" fill="#ff5cae"/><circle cx="0" cy="8" r="7" fill="#ff5cae"/><circle cx="-8" cy="0" r="7" fill="#ff5cae"/><circle r="5" fill="#ffd23d"/></g>`;
+  if(a==='star')return `<polygon points="150,32 155,46 170,46 158,55 162,70 150,61 138,70 142,55 130,46 145,46" fill="#ffd23d" stroke="#e0a90c" stroke-width="1.5" stroke-linejoin="round"/>`;
+  return ''; }
+function gsvgAcc(k){ const sv=state.acc; state.acc=k;
+  const h=`<svg viewBox="0 6 200 168" style="width:100%;height:auto;display:block;overflow:visible">
+    <circle cx="100" cy="100" r="46" fill="var(--cSk)"/>
+    <circle cx="84" cy="101" r="5.5" fill="#3a2a1a"/><circle cx="116" cy="101" r="5.5" fill="#3a2a1a"/>
+    <ellipse cx="74" cy="116" rx="6.5" ry="4.2" fill="#ff9ec2" opacity=".5"/><ellipse cx="126" cy="116" rx="6.5" ry="4.2" fill="#ff9ec2" opacity=".5"/>
+    <path d="M88 118 q12 11 24 0" stroke="#c8607f" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    ${accSVG()}</svg>`; state.acc=sv; return h; }
 function face(){ const u=++GID; return `
   <defs><radialGradient id="sk${u}" cx="40%" cy="30%" r="78%">
-    <stop offset="0" stop-color="#fff1e3"/><stop offset="58%" stop-color="${SKIN}"/><stop offset="100%" stop-color="#f1bf95"/></radialGradient></defs>
+    <stop offset="0" stop-color="var(--cSkL)"/><stop offset="58%" stop-color="var(--cSk)"/><stop offset="100%" stop-color="var(--cSkD)"/></radialGradient></defs>
   <circle cx="100" cy="100" r="48" fill="url(#sk${u})"/>
   <ellipse cx="78" cy="84" rx="16" ry="11" fill="#fff" opacity=".22"/>
   <ellipse cx="83" cy="100" rx="8" ry="10.5" fill="#fff"/><ellipse cx="117" cy="100" rx="8" ry="10.5" fill="#fff"/>
@@ -394,7 +443,7 @@ function face(){ const u=++GID; return `
   <circle cx="86" cy="99" r="2.1" fill="#fff"/><circle cx="120" cy="99" r="2.1" fill="#fff"/>
   <ellipse cx="74" cy="116" rx="7.5" ry="5" fill="#ff9ec2" opacity=".55"/><ellipse cx="126" cy="116" rx="7.5" ry="5" fill="#ff9ec2" opacity=".55"/>
   <path d="M88 118 q12 12 24 0" stroke="#c8607f" stroke-width="3.6" fill="none" stroke-linecap="round"/>`; }
-function gsvg(i){ return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;overflow:visible">${i}</svg>`; }
+function gsvg(i){ return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;overflow:visible">${i}${accSVG()}</svg>`; }
 const cH='var(--cH)', cHd='var(--cHd)', cHl='var(--cHl)';
 const STYLES={
   cutie:{ name:'Słodziak', svg:()=>gsvg(`
@@ -530,12 +579,17 @@ function EMO(e,cls){ const nm=FLUENT[e]; if(!nm)return e||'';
 
 /* ============== ROUND GENERATORS (d=level) ============== */
 function roundLetters(d){
-  const tv=['p2l','l2p']; if(d>=5)tv.push('missing'); if(d>=11)tv.push('spell');
+  const tv=['p2l','l2p']; if(d>=5)tv.push('missing'); if(d>=7)tv.push('matchpic'); if(d>=11)tv.push('spell');
   const variant=pick(tv);
   if(variant==='missing'||variant==='spell'){
     const cap = variant==='spell' ? (d>=16?4:3) : 4;
     const wp=WORDS.filter(w=>w[0].length<=cap), [w,em]=pick(wp.length?wp:WORDS);
     renderType(em,w,variant); return;
+  }
+  if(variant==='matchpic'){
+    const ks=shuffle(Object.keys(LETTERS)).slice(0,3);
+    renderDrag(ks.map(k=>({key:k,html:EMO(LETTERS[k][1])})), ks.map(k=>({key:k,html:k})),
+      'Przeciągnij literę do obrazka', 'Przeciągnij każdą literę na pasujący obrazek.'); return;
   }
   const poolN=clamp(3+Math.ceil(d*0.8),4,LETTERS_ORD.length), pool=LETTERS_ORD.slice(0,poolN), nOpt=d>=10?4:3;
   const target=pick(pool), [word,emoji]=LETTERS[target], distract=shuffle(pool.filter(k=>k!==target)).slice(0,nOpt-1);
@@ -548,9 +602,18 @@ function roundLetters(d){
   }
 }
 function roundNumbers(d){
-  const variants=['count']; if(d>=4)variants.push('group'); if(d>=8)variants.push('largest');
-  if(d>=12)variants.push('add'); if(d>=15)variants.push('sub'); if(d>=20)variants.push('missadd');
+  const variants=['count']; if(d>=4)variants.push('group'); if(d>=6)variants.push('matchgrp'); if(d>=8)variants.push('largest');
+  if(d>=9)variants.push('order'); if(d>=12)variants.push('add'); if(d>=15)variants.push('sub'); if(d>=20)variants.push('missadd');
   const v=pick(variants), maxN=clamp(3+d,5,9);
+  if(v==='matchgrp'){ const e=pick(COUNT_EMOJI); let s=new Set(); while(s.size<3)s.add(1+rnd(6)); const ns=[...s];
+    renderDrag(ns.map(n=>({key:n,html:`<span class="emo-grp">${(EMO(e)+' ').repeat(n)}</span>`})), ns.map(n=>({key:n,html:n,cls:'num'})),
+      'Przeciągnij liczbę do grupy', 'Przeciągnij każdą liczbę do grupy, w której jest tyle samo.'); return;
+  }
+  if(v==='order'){ const k=d>=15?4:3; let s=new Set(); while(s.size<k)s.add(1+rnd(9)); const arr=[...s].sort((a,b)=>a-b);
+    const sizes=['clamp(72px,17vw,104px)','clamp(84px,19vw,118px)','clamp(96px,21vw,132px)','clamp(108px,23vw,146px)'];
+    renderDrag(arr.map((n,i)=>({key:i,size:sizes[i]})), arr.map((n,i)=>({key:i,html:n,cls:'num'})),
+      'Ułóż po kolei', 'Ułóż liczby od najmniejszej do największej.', '⬅ od najmniejszej do największej ➡'); return;
+  }
   if(v==='count'){ const n=1+rnd(maxN), e=pick(COUNT_EMOJI);
     promptArea().innerHTML=`<div class="prompt-objs">${(EMO(e)+' ').repeat(n).trim()}</div>`;
     setBubble('Policz i dotknij liczby!'); ask('Policz, ile tu jest. Dotknij właściwej liczby.');
@@ -583,8 +646,12 @@ function roundNumbers(d){
   }
 }
 function roundLogic(d){
-  const variants=['oddcolor','same','bigsmall']; if(d>=3)variants.push('oddshape','pairs'); if(d>=5)variants.push('pattern'); if(d>=8)variants.push('oddcat');
+  const variants=['oddcolor','same','bigsmall']; if(d>=3)variants.push('oddshape','pairs'); if(d>=5)variants.push('pattern'); if(d>=8)variants.push('oddcat'); if(d>=10)variants.push('ordersize');
   const v=pick(variants), nOpt=d>=6?4:3;
+  if(v==='ordersize'){ const sh=pick(SHAPES), col=pick(COLORS)[1], pcts=[44,64,86], zs=['clamp(72px,17vw,104px)','clamp(90px,20vw,124px)','clamp(108px,23vw,146px)'];
+    renderDrag(pcts.map((p,i)=>({key:i,size:zs[i]})), pcts.map((p,i)=>({key:i,html:sizedShape(sh,col,p),cls:'pic'})),
+      'Ułóż od najmniejszego', 'Ułóż kształty od najmniejszego do największego.', '⬅ od najmniejszego do największego ➡'); return;
+  }
   if(v==='oddcolor'){ const cols=shuffle(COLORS), base=cols[0], odd=cols[1], sh=pick(SHAPES);
     setBubble('Który jest inny?'); ask('Który jest inny? Dotknij tego, który nie pasuje do reszty.'); promptArea().innerHTML='';
     const arr=[{c:odd,k:1}]; for(let i=0;i<nOpt-1;i++)arr.push({c:base,k:0});
@@ -878,6 +945,39 @@ function renderType(emoji,word,mode){
       if(filled.every(x=>x!=='')) markCorrect(()=>say(word+'!'));
     } else { b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),400); markWrong(); } }; });
 }
+/* ---------- Tryb przeciągania: dopasuj / ułóż po kolei ---------- */
+function renderDrag(zones, tokens, bubbleTxt, sayTxt, hint){
+  locked=false;
+  promptArea().innerHTML = hint?`<div class="drag-hint">${hint}</div>`:'';
+  const el=optionsEl(); el.innerHTML='';
+  const wrap=document.createElement('div'); wrap.className='dragwrap';
+  const zr=document.createElement('div'); zr.className='zones';
+  zones.forEach(z=>{ const d=document.createElement('div'); d.className='zone '+(z.cls||''); d.dataset.key=String(z.key);
+    if(z.size)d.style.cssText='width:'+z.size+';height:'+z.size;
+    d.innerHTML=(z.html||'')+'<div class="slot2"></div>'; zr.appendChild(d); });
+  const tr=document.createElement('div'); tr.className='tokens';
+  shuffle(tokens.slice()).forEach(t=>{ const b=document.createElement('div'); b.className='token '+(t.cls||''); b.dataset.key=String(t.key); b.innerHTML=t.html; tr.appendChild(b); attachDrag(b,zr,wrap); });
+  wrap.appendChild(zr); wrap.appendChild(tr); wrap._total=tokens.length; wrap._placed=0;
+  el.appendChild(wrap); setBubble(bubbleTxt); ask(sayTxt);
+}
+function zoneAt(x,y,zr){ let f=null; zr.querySelectorAll('.zone').forEach(z=>{ const r=z.getBoundingClientRect(); if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)f=z; }); return f; }
+function attachDrag(el, zr, wrap){
+  let active=false,w=0,h=0;
+  const home=()=>{ el.style.position='';el.style.left='';el.style.top='';el.style.width='';el.style.height='';el.style.zIndex=''; };
+  el.addEventListener('pointerdown',e=>{ if(locked||el.classList.contains('placed'))return; active=true; try{el.setPointerCapture(e.pointerId);}catch(_){}
+    el.classList.add('dragging'); const r=el.getBoundingClientRect(); w=r.width;h=r.height;
+    el.style.width=w+'px';el.style.height=h+'px';el.style.position='fixed';el.style.zIndex=200;
+    el.style.left=(e.clientX-w/2)+'px';el.style.top=(e.clientY-h/2)+'px'; e.preventDefault(); });
+  el.addEventListener('pointermove',e=>{ if(!active)return; el.style.left=(e.clientX-w/2)+'px';el.style.top=(e.clientY-h/2)+'px';
+    zr.querySelectorAll('.zone').forEach(z=>z.classList.remove('over')); const z=zoneAt(e.clientX,e.clientY,zr); if(z&&!z.classList.contains('filled'))z.classList.add('over'); });
+  el.addEventListener('pointerup',e=>{ if(!active)return; active=false; el.classList.remove('dragging'); zr.querySelectorAll('.zone').forEach(z=>z.classList.remove('over'));
+    const z=zoneAt(e.clientX,e.clientY,zr);
+    if(z&&!z.classList.contains('filled')&&z.dataset.key===el.dataset.key){
+      z.classList.add('filled','right'); z.innerHTML=el.innerHTML; el.classList.add('placed'); el.style.visibility='hidden'; home(el); emiHappy();
+      wrap._placed++; if(wrap._placed>=wrap._total){ locked=true; const p=pick(PRAISE); setBubble(p); say(p); dayRec().correct++; save(); confetti(); setTimeout(advance,1000); }
+    } else { if(z&&z.dataset.key!==el.dataset.key)markWrong(); home(el); } });
+  el.addEventListener('pointercancel',()=>{ if(active){active=false;el.classList.remove('dragging');home(el);} });
+}
 function advance(){ levelState.qi++; updatePips(); if(levelState.qi>=QPL) finishLevel(); else nextRound(); }
 function emiHappy(){ const e=$('emiGame'); e.classList.remove('happy'); void e.offsetWidth; e.classList.add('happy'); }
 
@@ -1004,6 +1104,7 @@ let toastT=null; function toast(m){ const el=$('unlockToast'); el.textContent=m;
 function applyLook(){
   const f=FONTS[state.font]; document.documentElement.style.setProperty('--fhead',f.head); document.documentElement.style.setProperty('--fbody',f.body);
   const hc=HAIR[state.hair].c; document.documentElement.style.setProperty('--cH',hc[0]); document.documentElement.style.setProperty('--cHd',hc[1]); document.documentElement.style.setProperty('--cHl',hc[2]);
+  const sc=SKINS[state.skin].c; document.documentElement.style.setProperty('--cSkL',sc[0]); document.documentElement.style.setProperty('--cSk',sc[1]); document.documentElement.style.setProperty('--cSkD',sc[2]);
   $('emiHome').innerHTML=STYLES[state.style].svg(); $('emiGame').innerHTML=STYLES[state.style].svg(); $('emiMap').innerHTML=STYLES[state.style].svg();
   document.body.style.background=BG[state.bg].css;
   $('petHome').innerHTML=PETS[state.pet]&&PETS[state.pet].emoji?EMO(PETS[state.pet].emoji):'';
@@ -1020,6 +1121,12 @@ function renderWardrobe(){
   }else if(wdTab==='wlosy'){ HAIR_ORDER.forEach(k=>{ const it=HAIR[k], lk=state.stars<it.need;
       add(`<div class="swatch" style="background:linear-gradient(160deg,${it.c[2]},${it.c[0]} 50%,${it.c[1]})"></div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
         state.hair===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.hair=k; state.styleChanged=true; save(); applyLook(); renderWardrobe(); checkAch(); }); });
+  }else if(wdTab==='skora'){ SKIN_ORDER.forEach(k=>{ const it=SKINS[k], lk=state.stars<it.need;
+      add(`<div class="swatch" style="background:radial-gradient(circle at 38% 32%,${it.c[0]},${it.c[1]} 60%,${it.c[2]})"></div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
+        state.skin===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.skin=k; state.styleChanged=true; save(); applyLook(); renderWardrobe(); checkAch(); }); });
+  }else if(wdTab==='dodatki'){ ACC_ORDER.forEach(k=>{ const it=ACC[k], lk=state.stars<it.need;
+      add(`<div class="big">${gsvgAcc(k)}</div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
+        state.acc===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.acc=k; state.styleChanged=true; save(); applyLook(); renderWardrobe(); checkAch(); }); });
   }else if(wdTab==='tlo'){ BG_ORDER.forEach(k=>{ const it=BG[k], lk=state.stars<it.need;
       add(`<div class="swatch" style="background:${it.css}"></div><div class="lbl">${it.name}</div>${lk?lockHtml(it.need):''}`,
         state.bg===k, ()=>{ if(state.stars<it.need){ toast('Zbierz ⭐ '+it.need); say('Potrzebujesz '+it.need+' gwiazdek'); return; } state.bg=k; save(); applyLook(); renderWardrobe(); }); });
