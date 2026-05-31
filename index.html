@@ -102,7 +102,7 @@
     display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center;
     box-shadow:0 8px 0 var(--leg,#c9bfe0); transition:transform .12s; }
   .ctile:active{ transform:translateY(4px); box-shadow:0 4px 0 var(--leg,#c9bfe0); }
-  .ctile .ct-ic{ width:clamp(48px,13vw,68px); height:clamp(48px,13vw,68px); }
+  .ctile .ct-ic{ width:clamp(48px,13vw,68px); height:clamp(48px,13vw,68px); display:flex; align-items:center; justify-content:center; font-size:clamp(38px,10vw,56px); line-height:1; }
   .ctile .ct-ic .emo3d{ width:100%; height:100%; }
   .ctile .ct-n{ font-family:var(--fhead); font-weight:700; font-size:clamp(15px,4vw,20px); }
   .ctile .ct-p{ font-size:clamp(11px,2.8vw,13px); font-weight:700; opacity:.95; }
@@ -155,6 +155,8 @@
   .node.nu{ background:linear-gradient(160deg,#46c8f5,#1f8fc4); box-shadow:0 7px 0 #166d97; }
   .node.lo{ background:linear-gradient(160deg,#b06bff,#8338d6); box-shadow:0 7px 0 #5e22a0; }
   .node.tf{ background:linear-gradient(160deg,#34d6c0,#159c8b); box-shadow:0 7px 0 #0e6f63; }
+  .node.me{ background:linear-gradient(160deg,#ffb14d,#f5871f); box-shadow:0 7px 0 #b5610a; }
+  .node.so{ background:linear-gradient(160deg,#ff8aa3,#e8536f); box-shadow:0 7px 0 #b22f48; }
   .node.done{ background:linear-gradient(160deg,#6fe07a,#46a852)!important; box-shadow:0 7px 0 #2f7d3a!important; }
   .node.cur{ animation:pulse 1.5s infinite; }
   @keyframes pulse{ 0%,100%{box-shadow:0 7px 0 rgba(0,0,0,.18),0 0 0 0 rgba(255,77,157,.45)} 50%{box-shadow:0 7px 0 rgba(0,0,0,.18),0 0 0 16px rgba(255,77,157,0)} }
@@ -210,6 +212,7 @@
     font-size:clamp(24px,6vw,36px); box-shadow:0 5px 0 #5e22a0; cursor:pointer; }
   .key:active{ transform:translateY(4px); box-shadow:0 1px 0 #5e22a0; }
   .key.wrong{ animation:shake .4s; }
+  .key.used{ background:#e7dbf7; color:#b9a9d8; box-shadow:0 3px 0 #cfc0e6; opacity:.7; transform:translateY(2px); cursor:default; }
   /* drag: dopasuj / ułóż po kolei */
   .dragwrap{ display:flex; flex-direction:column; align-items:center; gap:2.2vh; width:100%; }
   .zones,.tokens{ display:flex; gap:clamp(10px,2.6vw,20px); justify-content:center; align-items:center; flex-wrap:wrap; }
@@ -222,8 +225,53 @@
     background:linear-gradient(160deg,#b06bff,#8338d6); box-shadow:0 7px 0 #5e22a0; color:#fff; font-family:var(--fhead);
     display:flex; align-items:center; justify-content:center; font-size:clamp(38px,9vw,64px); transition:box-shadow .1s; }
   .token.pic{ background:var(--card); box-shadow:0 7px 0 var(--btnsh); }
+  .token.word{ width:auto; height:auto; min-height:clamp(58px,13vw,82px); padding:6px clamp(16px,3.6vw,26px); }
+  .wtile{ font-family:var(--fhead); font-weight:700; font-size:clamp(20px,5vw,30px); color:#fff; white-space:nowrap; letter-spacing:.5px; }
+  .wt-h{ color:#ffe07a; font-size:1.22em; }
   .token.dragging{ box-shadow:0 14px 20px rgba(74,58,107,.35); }
   .drag-hint{ font-family:var(--fhead); font-weight:700; color:var(--magenta); font-size:clamp(15px,4vw,22px); text-align:center; }
+  /* Pamięć */
+  .mem-grid{ display:grid; gap:clamp(8px,2.2vw,16px); justify-content:center; margin:0 auto; max-width:min(92vw,560px); }
+  .mem-card{ aspect-ratio:1/1; width:clamp(62px,16vw,108px); border:none; cursor:pointer; border-radius:18px; position:relative;
+    background:linear-gradient(160deg,#9b6bff,#7338d6); box-shadow:0 6px 0 #5e22a0; padding:0; }
+  .mem-card:active{ transform:translateY(3px); box-shadow:0 3px 0 #5e22a0; }
+  .mem-card .mc-back{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:clamp(28px,7vw,46px); color:#fff; }
+  .mem-card .mc-face{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; padding:10%; font-size:clamp(34px,9vw,56px); line-height:1; }
+  .mem-card .mc-face .emo3d{ width:100%; height:100%; }
+  .mem-card.flipped{ background:var(--card); box-shadow:0 6px 0 var(--btnsh); }
+  .mem-card.flipped .mc-back{ display:none; } .mem-card.flipped .mc-face{ display:flex; }
+  .mem-card.matched{ background:#eafaf0; box-shadow:0 6px 0 #bfe8cf; animation:matchpop .4s; }
+  @keyframes matchpop{ 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+  /* Sortowanie — karty przesuwane (Tinder): nagłówki po bokach, karta w środku */
+  .swipe-wrap{ display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; overflow:visible; }
+  .sw-row{ display:flex; align-items:center; justify-content:center; gap:clamp(6px,2.5vw,20px); width:100%; max-width:660px; overflow:visible; }
+  .sw-tag{ flex:0 0 auto; width:clamp(72px,18vw,128px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    cursor:pointer; border-radius:22px; padding:14px 8px; font-family:var(--fhead); font-weight:700; text-align:center;
+    font-size:clamp(13px,3.2vw,18px); color:#fff; box-shadow:0 5px 0 rgba(0,0,0,.18); transition:transform .12s, filter .12s; }
+  .sw-tag .emo3d{ width:clamp(30px,8vw,48px); height:clamp(30px,8vw,48px); }
+  .sw-tag.left{ background:linear-gradient(160deg,#ff8aa3,#e8536f); }
+  .sw-tag.right{ background:linear-gradient(160deg,#46c8f5,#1f8fc4); }
+  .sw-tag.hot{ transform:scale(1.08); filter:brightness(1.14); }
+  .sw-tag:active{ transform:scale(.96); }
+  .sw-stack{ flex:0 0 auto; position:relative; width:clamp(140px,42vmin,250px); height:clamp(140px,42vmin,250px); overflow:visible; }
+  .sw-card{ position:absolute; inset:0; background:var(--card); border-radius:28px; box-shadow:0 12px 28px rgba(74,58,107,.22);
+    display:flex; align-items:center; justify-content:center; touch-action:none; user-select:none; will-change:transform; }
+  .sw-card.top{ cursor:grab; }
+  .sw-emoji{ font-size:clamp(70px,28vmin,130px); line-height:1; }
+  .sw-emoji .emo3d{ width:clamp(96px,34vmin,180px); height:clamp(96px,34vmin,180px); }
+  .sw-card.go-left{ transform:translateX(-95%) rotate(-16deg) scale(.85)!important; opacity:0; transition:transform .34s ease-in, opacity .24s linear; }
+  .sw-card.go-right{ transform:translateX(95%) rotate(16deg) scale(.85)!important; opacity:0; transition:transform .34s ease-in, opacity .24s linear; }
+  .sw-card.shake{ animation:shakeX .42s; }
+  @keyframes shakeX{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-12px) rotate(-3deg)} 75%{transform:translateX(12px) rotate(3deg)} }
+  .sw-count{ font-family:var(--fhead); font-weight:700; color:var(--muted); font-size:clamp(13px,3.2vw,16px); }
+  /* talie Pamięci */
+  .deck-bar{ display:flex; align-items:center; gap:8px; overflow-x:auto; padding:2px 14px 8px; flex:none; -webkit-overflow-scrolling:touch; }
+  .deck-lbl{ font-family:var(--fhead); font-weight:700; color:var(--muted); font-size:clamp(12px,3vw,15px); flex:none; }
+  .deck-pill{ flex:none; display:flex; align-items:center; gap:5px; border:none; cursor:pointer; border-radius:20px; padding:8px 14px;
+    font-family:var(--fhead); font-weight:700; font-size:clamp(12px,3vw,15px); color:var(--text); background:var(--card); box-shadow:0 3px 0 var(--btnsh); white-space:nowrap; }
+  .deck-pill .emo3d{ width:clamp(18px,4.5vw,24px); height:clamp(18px,4.5vw,24px); }
+  .deck-pill.on{ background:linear-gradient(160deg,#ffb14d,#f5871f); color:#fff; box-shadow:0 3px 0 #b5610a; }
+  .deck-pill:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--btnsh); }
   .emo-grp{ font-size:.4em; line-height:1.05; display:inline-flex; flex-wrap:wrap; gap:2px; max-width:5.2em; justify-content:center; }
   .tracecv{ display:block; margin:0 auto; border-radius:24px; background:#fff; box-shadow:0 6px 0 var(--btnsh); touch-action:none; cursor:crosshair; }
   .dragwrap{ position:relative; }
@@ -375,13 +423,10 @@
     </div>
 
     <div class="home-scroll">
-      <div class="sec-h">🌟 Twój program</div>
-      <div class="path-scroll" id="pathScroll"></div>
-
-      <div class="sec-h">🎯 Wybierz temat</div>
+      <div class="sec-h">🎯 Wybierz zadanie</div>
       <div class="cat-grid" id="wlist"></div>
 
-      <div class="menu-row" style="margin-top:6px">
+      <div class="menu-row" style="margin-top:16px">
         <button class="pill" id="demoBtn">🔎 Podgląd zadań</button>
       </div>
     </div>
@@ -395,6 +440,7 @@
       <div class="stars">⭐ <span class="starN">0</span></div>
     </div>
     <div class="map-banner"><div class="emi" id="emiMap"></div><div class="bubble" id="mapBubble">Wybierz poziom!</div></div>
+    <div class="deck-bar" id="deckBar"></div>
     <div class="map-scroll" id="mapScroll"><div class="map-inner" id="mapInner"></div></div>
   </section>
 
@@ -472,7 +518,7 @@ let UNLOCK_ALL=true; // TESTOWO: wszystkie poziomy odblokowane (ustaw na false, 
 
 /* ---------- Persisted state ---------- */
 const SAVE='emilka_save_v4';
-let state={ stars:0, mode:'zaawansowany', letterCase:'upper', childName:'Emilka', style:'idol', bg:'jasne', pet:'none', hair:'blonde', skin:'jasna', acc:'none', font:'fredoka', voiceName:null,
+let state={ stars:0, mode:'zaawansowany', letterCase:'upper', childName:'Emilka', memDeck:'mix', style:'idol', bg:'jasne', pet:'none', hair:'blonde', skin:'jasna', acc:'none', font:'fredoka', voiceName:null,
   progress:{podstawowy:{},zaawansowany:{},trudny:{}}, program:{podstawowy:0,zaawansowany:0,trudny:0}, stats:{}, ach:{}, styleChanged:false };
 try{ const s=JSON.parse(localStorage.getItem(SAVE)||'{}'); Object.assign(state,s);
   state.progress=state.progress||{};
@@ -481,6 +527,7 @@ try{ const s=JSON.parse(localStorage.getItem(SAVE)||'{}'); Object.assign(state,s
   if(typeof state.program!=='object'||state.program===null)state.program={podstawowy:0,zaawansowany:0,trudny:0};
   ['podstawowy','zaawansowany','trudny'].forEach(m=>{ if(typeof state.program[m]!=='number')state.program[m]=0; });
   if(typeof state.childName!=='string'||!state.childName.trim())state.childName='Emilka'; state.childName=state.childName.slice(0,16);
+  if(typeof state.memDeck!=='string')state.memDeck='mix';
   state.stats=state.stats||{}; state.ach=state.ach||{}; }catch(e){}
 function save(){ try{ localStorage.setItem(SAVE, JSON.stringify(state)); }catch(e){} }
 
@@ -690,6 +737,8 @@ const WORDS=[['lis','🦊'],['kot','🐱'],['dom','🏠'],['nos','👃'],['oko',
   ['ser','🧀'],['las','🌲'],['pies','🐶'],['lody','🍦'],['ryba','🐟'],['miś','🧸'],['ucho','👂'],['tort','🎂'],
   ['mysz','🐭'],['sowa','🦉'],['kura','🐔'],['koza','🐐']];
 function uniqueLetters(w){ return [...new Set(w.toUpperCase().split(''))]; }
+function wordTile(word){ const disp=word[0].toUpperCase()+word.slice(1).toLowerCase();
+  return `<span class="wtile"><span class="wt-h">${disp[0]}</span>${disp.slice(1)}</span>`; }
 const COUNT_EMOJI=['🍎','⭐','🎈','🍓','🐞','🌸','🐠','🍪','🦋','🍒','🐝','🌟','🧁','🌷'];
 const COLORS=[['Czerwony','#ff4d6a'],['Niebieski','#3da5ff'],['Zielony','#3ddc7f'],['Żółty','#ffd23d'],
   ['Fioletowy','#b06bff'],['Pomarańczowy','#ff9a3d'],['Różowy','#ff7ac6']];
@@ -741,8 +790,9 @@ function roundLetters(d,forced){
   }
   if(variant==='matchpic'){
     const ks=shuffle(Object.keys(LETTERS)).slice(0,3);
-    renderDrag(ks.map(k=>({key:k,html:EMO(letPick(k)[1])})), ks.map(k=>({key:k,html:k})),
-      'Dopasuj litery do obrazków', 'Przeciągnij każdą literę na obrazek, który się od niej zaczyna.', '👆 przeciągnij literę na obrazek'); return;
+    const picks=ks.map(k=>{ const e=letPick(k); return {k, word:e[0], emoji:e[1]}; });
+    renderDrag(picks.map(p=>({key:p.k,html:EMO(p.emoji)})), picks.map(p=>({key:p.k,html:wordTile(p.word),cls:'word'})),
+      'Dopasuj słowa do obrazków', 'Przeczytaj słowo i przeciągnij je na pasujący obrazek.', '👆 przeciągnij słowo na obrazek'); return;
   }
   const poolN=clamp(3+Math.ceil(d*0.8),4,LETTERS_ORD.length), pool=LETTERS_ORD.slice(0,poolN), nOpt=d>=10?4:3;
   const target=pick(pool), te=letPick(target), word=te[0], distract=shuffle(pool.filter(k=>k!==target)).slice(0,nOpt-1);
@@ -846,12 +896,17 @@ function roundLogic(d,forced){
 
 /* ---------- Prawda / Fałsz: baza ciekawostek ---------- */
 const TF_EMOJI={ zwierzęta:'🐾', natura:'🌿', ciało:'🧒', kosmos:'🚀', jedzenie:'🍎',
-  pojazdy:'🚗', kolory:'🎨', pogoda:'🌦️', dom:'🏠', zawody:'👩‍🚒', nauka:'🧠' };
+  pojazdy:'🚗', kolory:'🎨', pogoda:'🌦️', dom:'🏠', zawody:'👩‍🚒', nauka:'🧠', dinozaury:'🦖', ocean:'🐠', badacz:'🔬' };
 const TF_THEMES=[
-  {key:'zwierzeta', name:'Zwierzęta', emoji:'🐾', col:['#34d6c0','#159c8b'], leg:'#0e6f63', cats:['zwierzęta']},
-  {key:'przyroda', name:'Przyroda', emoji:'🌿', col:['#6fd86f','#3ea53e'], leg:'#2c7a2c', cats:['natura','pogoda','kolory']},
-  {key:'kosmos', name:'Świat i Kosmos', emoji:'🚀', col:['#6aa0ff','#3a6ff0'], leg:'#2a52c0', cats:['kosmos','pojazdy']},
-  {key:'czlowiek', name:'Ja i Dom', emoji:'🧒', col:['#ff9a6b','#e8682e'], leg:'#c44e1e', cats:['ciało','dom','jedzenie','zawody']},
+  {key:'zwierzeta', name:'Zwierzęta świata', emoji:'🐾', col:['#34d6c0','#159c8b'], leg:'#0e6f63', cats:['zwierzęta']},
+  {key:'dinozaury', name:'Dinozaury', emoji:'🦖', col:['#8fd14f','#4e9a2a'], leg:'#356b1c', cats:['dinozaury']},
+  {key:'ocean', name:'Ocean i morze', emoji:'🐠', col:['#3ec6e0','#1f8fc4'], leg:'#15688f', cats:['ocean']},
+  {key:'przyroda', name:'Przyroda i pogoda', emoji:'🌿', col:['#6fd86f','#3ea53e'], leg:'#2c7a2c', cats:['natura','pogoda','kolory']},
+  {key:'kosmos', name:'Kosmos i planety', emoji:'🚀', col:['#6aa0ff','#3a6ff0'], leg:'#2a52c0', cats:['kosmos']},
+  {key:'pojazdy', name:'Pojazdy i maszyny', emoji:'🚗', col:['#ffb14d','#e8841f'], leg:'#b5610a', cats:['pojazdy']},
+  {key:'czlowiek', name:'Ciało i zdrowie', emoji:'🧒', col:['#ff9a6b','#e8682e'], leg:'#c44e1e', cats:['ciało','jedzenie']},
+  {key:'dom', name:'Dom i zawody', emoji:'🏠', col:['#ff8aa3','#e8536f'], leg:'#b22f48', cats:['dom','zawody']},
+  {key:'badacz', name:'Badacz Przyrody', emoji:'🔬', col:['#7bd88f','#2f9e54'], leg:'#1f6e3a', cats:['badacz']},
   {key:'madra', name:'Mądra Sowa', emoji:'🦉', col:['#b58cff','#7d4ad6'], leg:'#5e34a8', cats:['nauka']},
 ];
 const FACTS=[
@@ -865,7 +920,6 @@ const FACTS=[
   {c:'zwierzęta',q:'Zebra ma czarno-białe paski.',t:true,d:1,e:'Tak! Każda zebra ma swój własny wzór pasków, inny niż wszystkie inne.'},
   {c:'zwierzęta',q:'Żółw chowa się do swojej skorupy.',t:true,d:1,e:'Tak! Twarda skorupa chroni żółwia jak tarcza, gdy czuje zagrożenie.'},
   {c:'zwierzęta',q:'Ryba potrafi chodzić po lądzie jak piesek.',t:false,d:1,e:'Nie. Ryba pływa w wodzie, a na lądzie nie potrafi chodzić.'},
-  {c:'zwierzęta',q:'Ryba ma futro jak miś.',t:false,d:1,e:'Nie. Ryba jest pokryta śliskimi łuskami, a nie futrem.'},
   {c:'zwierzęta',q:'Nietoperz to ptak.',t:false,d:2,e:'Nie. Nietoperz lata, ale to ssak — nie ma piór, a jego dzieci piją mleko mamy.'},
   {c:'zwierzęta',q:'Delfin oddycha pod wodą jak ryba.',t:false,d:2,e:'Nie. Delfin to ssak i oddycha powietrzem, dlatego co chwilę wypływa na powierzchnię, żeby zaczerpnąć powietrza.'},
   {c:'zwierzęta',q:'Pająk ma osiem nóg.',t:true,d:2,e:'Tak! Pająk ma osiem nóg. Dlatego nie jest owadem — owady mają tylko sześć nóg.'},
@@ -967,7 +1021,6 @@ const FACTS=[
   {c:'dom',q:'Zęby myjemy szczoteczką i pastą.',t:true,d:1,e:'Tak! Myjemy je rano i wieczorem, żeby były czyste, mocne i zdrowe.'},
   {c:'dom',q:'W łóżku śpimy i odpoczywamy.',t:true,d:1,e:'Tak! Podczas snu nabieramy siły na cały następny dzień.'},
   {c:'dom',q:'Lampa daje światło, gdy jest ciemno.',t:true,d:1,e:'Tak! Wystarczy ją włączyć, żeby zrobiło się jasno.'},
-  {c:'dom',q:'Buty zakładamy na ręce.',t:false,d:1,e:'Nie. Buty zakładamy na nogi, a na ręce rękawiczki.'},
   {c:'dom',q:'Parasol chroni nas przed deszczem.',t:true,d:1,e:'Tak! Pod otwartym parasolem nie zmokniemy.'},
   {c:'dom',q:'Lodówka chłodzi jedzenie, by dłużej było świeże.',t:true,d:2,e:'Tak! W zimnej lodówce jedzenie wolniej się psuje, dlatego trzymamy w niej np. mleko i jogurt.'},
   {c:'dom',q:'Klucz pasuje do zamka i otwiera drzwi.',t:true,d:2,e:'Tak! Tylko właściwy klucz otworzy zamek — trochę jak puzzel pasujący do jednego miejsca.'},
@@ -988,7 +1041,6 @@ const FACTS=[
   {c:'zawody',q:'Nauczyciel śpi cały dzień zamiast uczyć.',t:false,d:2,e:'Nie. Nauczyciel uczy dzieci czytać, liczyć i poznawać świat.'},
 
   {c:'nauka',q:'Zegar pokazuje, która jest godzina.',t:true,d:1,e:'Tak! Wskazówki zegara pokazują czas, dzięki czemu wiemy, kiedy jest pora na obiad albo spanie.'},
-  {c:'nauka',q:'Koło ma rogi.',t:false,d:1,e:'Nie. Koło jest okrągłe i gładkie, nie ma żadnych rogów. Rogi ma np. trójkąt albo kwadrat.'},
   {c:'nauka',q:'Po dniu przychodzi noc.',t:true,d:1,e:'Tak! Gdy słońce zachodzi, robi się ciemno i nastaje noc, a rano znów dzień.'},
   {c:'nauka',q:'Kropla wody jest sucha.',t:false,d:1,e:'Nie. Woda jest mokra, a po dotknięciu zostaje na palcu.'},
   {c:'nauka',q:'Słoń jest cięższy od piórka.',t:true,d:1,e:'Tak! Słoń jest ogromny i ciężki, a piórko leciutkie jak nic.'},
@@ -1018,14 +1070,164 @@ const FACTS=[
   {c:'nauka',q:'Słowo „góra” jest przeciwieństwem słowa „dół”.',t:true,d:2,e:'Tak! Góra to wysoko, a dół to nisko — to przeciwieństwa.'},
   {c:'nauka',q:'Cisza to brak dźwięku.',t:true,d:1,e:'Tak! Gdy jest cicho, nic nie słychać — to właśnie cisza.'},
   {c:'nauka',q:'Gwiazdka, którą rysujemy, ma zwykle pięć ramion.',t:true,d:2,e:'Tak! Najczęściej rysujemy gwiazdkę o pięciu ramionach.'},
+
+  /* ===== ZWIERZĘTA (trudniejsze, z pułapkami) ===== */
+  {c:'zwierzęta',q:'Pająk to owad.',t:false,d:3,e:'Nie! Pająk ma osiem nóg, a owady sześć. Pająki to pajęczaki, nie owady.'},
+  {c:'zwierzęta',q:'Wieloryb to ogromna ryba.',t:false,d:4,e:'Nie! Wieloryb to ssak — oddycha powietrzem i wynurza się po tchu, a ryby oddychają skrzelami.'},
+  {c:'zwierzęta',q:'Nietoperz to jedyny ssak, który potrafi latać.',t:true,d:4,e:'Tak! Nietoperz rodzi młode i karmi je mlekiem, a mimo to lata dzięki skórzastym skrzydłom.'},
+  {c:'zwierzęta',q:'Żaba zaczyna życie jako kijanka.',t:true,d:3,e:'Tak! Z jajeczek wylęgają się kijanki z ogonkiem, które potem zmieniają się w żaby.'},
+  {c:'zwierzęta',q:'Struś potrafi latać wysoko jak orzeł.',t:false,d:3,e:'Nie! Struś jest za ciężki, by latać, ale biega bardzo szybko — szybciej niż człowiek.'},
+  {c:'zwierzęta',q:'Kameleon potrafi zmieniać kolor skóry.',t:true,d:3,e:'Tak! Zmienia barwę, żeby się ukryć albo pokazać nastrój.'},
+  {c:'zwierzęta',q:'Sowa potrafi obrócić głowę bardzo daleko, prawie do tyłu.',t:true,d:4,e:'Tak! Sowa nie rusza oczami, więc mocno obraca głowę, żeby się rozejrzeć.'},
+  {c:'zwierzęta',q:'Kangur nosi młode w torbie na brzuchu.',t:true,d:3,e:'Tak! W torbie małemu kangurkowi jest ciepło i bezpiecznie.'},
+  {c:'zwierzęta',q:'Żyrafa ma w szyi tyle samo kości co człowiek.',t:true,d:5,e:'Tak! Oboje mają siedem kości w szyi — tyle, że u żyrafy są ogromne.'},
+  {c:'zwierzęta',q:'Mrówka potrafi unieść coś cięższego od siebie.',t:true,d:4,e:'Tak! Mrówka jest mała, ale bardzo silna.'},
+  {c:'zwierzęta',q:'Niedźwiedź zimą zapada w sen i śpi przez większość zimy.',t:true,d:4,e:'Tak! To sen zimowy — niedźwiedź przesypia mroźny czas, gdy trudno o jedzenie.'},
+  {c:'zwierzęta',q:'Pszczoła miodna może użądlić wiele razy bez końca.',t:false,d:5,e:'Nie! Pszczoła miodna żądli tylko raz. To osa potrafi użądlić kilka razy.'},
+  {c:'zwierzęta',q:'Ślimak chowa się w muszli, gdy czuje zagrożenie.',t:true,d:2,e:'Tak! Muszla to domek ślimaka — chowa się w niej dla bezpieczeństwa.'},
+  {c:'zwierzęta',q:'Sowa poluje głównie w nocy.',t:true,d:3,e:'Tak! Sowa świetnie widzi i słyszy po ciemku, dlatego poluje nocą.'},
+  {c:'zwierzęta',q:'Motyl zanim stanie się motylem, jest najpierw gąsienicą.',t:true,d:3,e:'Tak! Gąsienica zamyka się w kokonie i zmienia w pięknego motyla.'},
+
+  /* ===== DINOZAURY ===== */
+  {c:'dinozaury',q:'Dinozaury żyły bardzo dawno temu.',t:true,d:1,e:'Tak! Żyły miliony lat temu, na długo przed ludźmi.'},
+  {c:'dinozaury',q:'Dinozaury bawią się dziś na placu zabaw.',t:false,d:1,e:'Nie! Dinozaurów już nie ma — znamy je z kości i muzeów.'},
+  {c:'dinozaury',q:'Niektóre dinozaury jadły tylko rośliny.',t:true,d:2,e:'Tak! Roślinożercy, jak diplodok, jedli liście, a inne polowały.'},
+  {c:'dinozaury',q:'Wszystkie dinozaury były malutkie jak kotek.',t:false,d:2,e:'Nie! Niektóre były ogromne jak dom, choć były i mniejsze.'},
+  {c:'dinozaury',q:'Tyranozaur (T. rex) był drapieżnikiem z ogromnymi zębami.',t:true,d:3,e:'Tak! T. rex polował na inne zwierzęta i miał wielkie, ostre zęby.'},
+  {c:'dinozaury',q:'Diplodok miał bardzo długą szyję, żeby sięgać po liście.',t:true,d:3,e:'Tak! Długa szyja pomagała mu jeść liście z wysokich drzew.'},
+  {c:'dinozaury',q:'Triceratops miał trzy rogi na głowie.',t:true,d:3,e:'Tak! Miał trzy rogi i wielką kostną kryzę chroniącą szyję.'},
+  {c:'dinozaury',q:'Dinozaury wykluwały się z jaj.',t:true,d:4,e:'Tak! Składały jaja, podobnie jak dzisiejsze ptaki i gady.'},
+  {c:'dinozaury',q:'Niektóre dinozaury miały pióra.',t:true,d:4,e:'Tak! Część dinozaurów miała pióra — a ptaki to ich dalecy krewni.'},
+  {c:'dinozaury',q:'Stegozaur miał na grzbiecie kostne płyty.',t:true,d:4,e:'Tak! Miał rząd płyt na grzbiecie i kolce na ogonie do obrony.'},
+  {c:'dinozaury',q:'Ludzie żyli razem z dinozaurami i je oswajali.',t:false,d:5,e:'Nie! Dinozaury wyginęły miliony lat przed ludźmi — nigdy się nie spotkali.'},
+  {c:'dinozaury',q:'Skamieniałości to ślady i kości sprzed milionów lat.',t:true,d:5,e:'Tak! Dzięki nim naukowcy wiedzą, jak wyglądały dinozaury.'},
+
+  /* ===== OCEAN I MORZE ===== */
+  {c:'ocean',q:'W oceanie jest dużo słonej wody.',t:true,d:1,e:'Tak! Woda morska jest słona, dlatego nie nadaje się do picia.'},
+  {c:'ocean',q:'W oceanie rosną prawdziwe lody i cukierki.',t:false,d:1,e:'Nie! W oceanie żyją zwierzęta i rośliny, a nie słodycze.'},
+  {c:'ocean',q:'Ośmiornica ma osiem ramion.',t:true,d:2,e:'Tak! Osiem ramion z przyssawkami — stąd jej nazwa.'},
+  {c:'ocean',q:'Krab często chodzi bokiem.',t:true,d:2,e:'Tak! Wiele krabów porusza się bokiem na swoich nóżkach.'},
+  {c:'ocean',q:'Rozgwiazda ma zwykle pięć ramion.',t:true,d:3,e:'Tak! A gdy straci ramię, potrafi je odrosnąć.'},
+  {c:'ocean',q:'Delfin to ssak i oddycha powietrzem.',t:true,d:3,e:'Tak! Wynurza się po powietrze — nie ma skrzeli jak ryby.'},
+  {c:'ocean',q:'Meduza ma kości i zęby.',t:false,d:3,e:'Nie! Meduza jest galaretowata i nie ma kości — ma za to parzące ramiona.'},
+  {c:'ocean',q:'Konik morski to mała ryba.',t:true,d:4,e:'Tak! Mimo śmiesznego kształtu konik morski jest rybą.'},
+  {c:'ocean',q:'Wieloryby wydają dźwięki, żeby się porozumieć.',t:true,d:4,e:'Tak! Wieloryby „śpiewają" pod wodą i tak ze sobą rozmawiają.'},
+  {c:'ocean',q:'Ocean jest najgłębszy tuż przy plaży.',t:false,d:5,e:'Nie! Przy plaży jest płytko — najgłębsze miejsca są daleko od brzegu.'},
+
+  /* ===== KOSMOS ===== */
+  {c:'kosmos',q:'Słońce jest gwiazdą.',t:true,d:3,e:'Tak! To ogromna, gorąca gwiazda — najbliższa Ziemi.'},
+  {c:'kosmos',q:'Ziemia krąży wokół Słońca.',t:true,d:3,e:'Tak! Jedno pełne okrążenie Słońca to cały rok.'},
+  {c:'kosmos',q:'Księżyc świeci własnym światłem.',t:false,d:4,e:'Nie! Księżyc odbija światło Słońca — sam nie świeci.'},
+  {c:'kosmos',q:'Mars nazywany jest Czerwoną Planetą.',t:true,d:4,e:'Tak! Wygląda na czerwony przez rdzawy pył na powierzchni.'},
+  {c:'kosmos',q:'W kosmosie nie ma powietrza do oddychania.',t:true,d:4,e:'Tak! Dlatego astronauci zakładają skafandry z zapasem powietrza.'},
+  {c:'kosmos',q:'Na Księżycu można podskakiwać wyżej niż na Ziemi.',t:true,d:4,e:'Tak! Na Księżycu przyciąganie jest słabsze, więc skacze się wysoko.'},
+  {c:'kosmos',q:'Słońce jest mniejsze od Ziemi.',t:false,d:5,e:'Nie! Słońce jest ogromne — zmieściłoby się w nim mnóstwo takich planet jak Ziemia.'},
+  {c:'kosmos',q:'Gwiazdy widać najlepiej w nocy.',t:true,d:3,e:'Tak! W dzień jasne Słońce zasłania ich światło.'},
+  {c:'kosmos',q:'Rakieta potrzebuje ogromnej siły, by polecieć w kosmos.',t:true,d:5,e:'Tak! Potężne silniki buchają ogniem, by oderwać ją od Ziemi.'},
+
+  /* ===== PRZYRODA / POGODA / KOLORY ===== */
+  {c:'natura',q:'Rośliny potrzebują światła, wody i powietrza, żeby rosnąć.',t:true,d:3,e:'Tak! Ze słońca i wody roślina tworzy pożywienie.'},
+  {c:'natura',q:'Wielkie drzewo wyrasta z małego nasionka.',t:true,d:3,e:'Tak! Z nasionka kiełkuje roślinka, która rośnie latami.'},
+  {c:'natura',q:'Grzyby to rośliny z liśćmi i kwiatami.',t:false,d:5,e:'Nie! Grzyby to osobne stworzenia — nie mają liści ani kwiatów.'},
+  {c:'natura',q:'Pszczoły pomagają roślinom, przenosząc pyłek między kwiatami.',t:true,d:4,e:'Tak! Dzięki temu powstają owoce i nasiona.'},
+  {c:'natura',q:'Woda na mrozie zamarza i staje się lodem.',t:true,d:4,e:'Tak! W cieple lód znów topnieje i wraca do postaci wody.'},
+  {c:'natura',q:'Gorąca woda paruje i unosi się jako para.',t:true,d:5,e:'Tak! Widać to nad gotującą się zupą albo czajnikiem.'},
+  {c:'pogoda',q:'Tęcza pojawia się, gdy świeci słońce i pada deszcz.',t:true,d:3,e:'Tak! Krople deszczu rozszczepiają światło słońca na kolory.'},
+  {c:'pogoda',q:'Chmury zrobione są z malutkich kropelek wody.',t:true,d:4,e:'Tak! Gdy kropelek jest bardzo dużo, zaczyna padać deszcz.'},
+  {c:'pogoda',q:'Najpierw widzimy błyskawicę, a dopiero potem słyszymy grzmot.',t:true,d:4,e:'Tak! Światło biegnie szybciej niż dźwięk, więc grzmot słyszymy później.'},
+  {c:'kolory',q:'Mieszając niebieski i żółty, otrzymasz zielony.',t:true,d:4,e:'Tak! Z dwóch kolorów powstaje nowy — to mieszanie barw.'},
+
+  /* ===== CIAŁO I ZDROWIE ===== */
+  {c:'ciało',q:'Serce pompuje krew po całym ciele.',t:true,d:3,e:'Tak! Bije bez przerwy — możesz poczuć je na piersi.'},
+  {c:'ciało',q:'Płuca pomagają nam oddychać.',t:true,d:4,e:'Tak! Wdychamy powietrze do płuc, a one biorą z niego to, co potrzebne.'},
+  {c:'ciało',q:'U dzieci mleczne ząbki wypadają, a rosną nowe, stałe.',t:true,d:3,e:'Tak! Na miejsce mlecznych zębów wyrastają zęby dorosłe.'},
+  {c:'ciało',q:'Kości tworzą szkielet, który trzyma ciało w całości.',t:true,d:4,e:'Tak! Szkielet chroni narządy i pomaga się ruszać.'},
+  {c:'ciało',q:'Mózg pomaga nam myśleć, pamiętać i ruszać ciałem.',t:true,d:5,e:'Tak! To centrum dowodzenia — wysyła sygnały do całego ciała.'},
+  {c:'jedzenie',q:'Warzywa i owoce dają witaminy i są zdrowe.',t:true,d:3,e:'Tak! Dzięki nim jesteśmy silni i zdrowi.'},
+  {c:'jedzenie',q:'Ser i jogurt powstają z mleka.',t:true,d:3,e:'Tak! To produkty mleczne — robi się je z mleka.'},
+  {c:'jedzenie',q:'Chleb piecze się z mąki.',t:true,d:4,e:'Tak! Mąkę miele się ze zboża, a potem piecze z niej chleb.'},
+  {c:'jedzenie',q:'Picie samych słodkich napojów zamiast wody jest zdrowe.',t:false,d:4,e:'Nie! Najzdrowsza jest woda — słodkie napoje pijemy rzadko.'},
+
+  /* ===== POJAZDY I MASZYNY ===== */
+  {c:'pojazdy',q:'Pociąg jeździ po szynach.',t:true,d:3,e:'Tak! Porusza się po torach zrobionych z szyn.'},
+  {c:'pojazdy',q:'Samolot lata dzięki skrzydłom i silnikom.',t:true,d:4,e:'Tak! Skrzydła i silniki unoszą go w powietrzu.'},
+  {c:'pojazdy',q:'Łódź podwodna potrafi pływać pod wodą.',t:true,d:4,e:'Tak! Okręt podwodny zanurza się i płynie głęboko.'},
+  {c:'pojazdy',q:'Wóz strażacki wozi wodę do gaszenia pożarów.',t:true,d:3,e:'Tak! Strażacy gaszą ogień wodą z węża.'},
+  {c:'pojazdy',q:'Rower jedzie, gdy kręcimy pedałami.',t:true,d:3,e:'Tak! Pedały napędzają koła i rower rusza.'},
+  {c:'pojazdy',q:'Samochód potrzebuje paliwa albo prądu, żeby jechać.',t:true,d:4,e:'Tak! Jedne auta tankuje się paliwem, inne ładuje prądem.'},
+
+  /* ===== DOM I ZAWODY ===== */
+  {c:'dom',q:'Lodówka utrzymuje jedzenie w chłodzie.',t:true,d:3,e:'Tak! W zimnie jedzenie dłużej jest świeże.'},
+  {c:'dom',q:'Mydło i woda pomagają zmyć brud i zarazki z rąk.',t:true,d:3,e:'Tak! Dlatego myjemy ręce przed jedzeniem.'},
+  {c:'zawody',q:'Lekarz pomaga, gdy jesteśmy chorzy.',t:true,d:3,e:'Tak! Bada i leczy, żebyśmy wyzdrowieli.'},
+  {c:'zawody',q:'Weterynarz leczy zwierzęta.',t:true,d:4,e:'Tak! Gdy pies czy kot zachoruje, idzie do weterynarza.'},
+  {c:'zawody',q:'Strażak gasi pożary i ratuje ludzi.',t:true,d:3,e:'Tak! Strażacy ratują też zwierzęta z opałów.'},
+  {c:'zawody',q:'Listonosz roznosi listy i paczki.',t:true,d:3,e:'Tak! Dostarcza pocztę do domów.'},
+
+  /* ===== NAUKA / LICZBY / KSZTAŁTY ===== */
+  {c:'nauka',q:'Trójkąt ma trzy boki.',t:true,d:3,e:'Tak! Trzy boki i trzy rogi — to trójkąt.'},
+  {c:'nauka',q:'Kwadrat ma cztery równe boki.',t:true,d:3,e:'Tak! Cztery jednakowe boki i cztery rogi.'},
+  {c:'nauka',q:'Koło nie ma rogów ani boków.',t:true,d:4,e:'Tak! Koło jest okrągłe — bez rogów jak kwadrat czy trójkąt.'},
+  {c:'nauka',q:'Liczba 10 jest większa niż 7.',t:true,d:4,e:'Tak! Im dalej w liczeniu, tym liczba większa.'},
+  {c:'nauka',q:'Magnes przyciąga drewno i papier.',t:false,d:4,e:'Nie! Magnes przyciąga tylko niektóre metale, a nie drewno czy papier.'},
+  {c:'nauka',q:'Lód to woda, która zamarzła.',t:true,d:4,e:'Tak! Z zimna woda twardnieje w lód, a w cieple znów topnieje.'},
+  {c:'nauka',q:'Cień jest tej samej długości przez cały dzień.',t:false,d:5,e:'Nie! Cień bywa długi rano i wieczorem, a krótki w południe.'},
+  {c:'nauka',q:'Po dniu zawsze przychodzi noc.',t:true,d:3,e:'Tak! Ziemia się obraca, więc dzień i noc następują po sobie.'},
+  {c:'nauka',q:'Echo to dźwięk, który odbija się i wraca do nas.',t:true,d:5,e:'Tak! W górach albo w pustym pokoju słyszymy go ponownie.'},
+
+  /* ===== BADACZ PRZYRODY (z podręcznika „Przyroda PLUS", klasa 1) ===== */
+  {c:'badacz',q:'Rośliny i zwierzęta to przyroda ożywiona.',t:true,d:2,e:'Tak! Przyroda ożywiona to wszystko, co żyje, rośnie i oddycha.'},
+  {c:'badacz',q:'Słońce, woda i kamienie to przyroda nieożywiona.',t:true,d:3,e:'Tak! To części przyrody, które nie żyją — przyroda nieożywiona.'},
+  {c:'badacz',q:'Kamień rośnie i oddycha tak jak roślina.',t:false,d:3,e:'Nie! Kamień nie żyje — należy do przyrody nieożywionej.'},
+  {c:'badacz',q:'Lupa pomaga obejrzeć małe rzeczy z bliska.',t:true,d:2,e:'Tak! Lupa powiększa, więc badacz widzi drobne szczegóły.'},
+  {c:'badacz',q:'Badacz przyrody robi notatki, rysunki i zdjęcia.',t:true,d:3,e:'Tak! Tak zapisuje i zapamiętuje swoje odkrycia.'},
+  {c:'badacz',q:'Złapanego owada wypuszczamy tam, gdzie go znaleźliśmy.',t:true,d:3,e:'Tak! To zasada badacza — obserwujemy, nie krzywdząc zwierząt.'},
+  {c:'badacz',q:'Biedronka ma na skrzydłach kropki.',t:true,d:2,e:'Tak! Najczęściej jest czerwona z czarnymi kropkami.'},
+  {c:'badacz',q:'Dżdżownica mieszka w ziemi i spulchnia glebę.',t:true,d:3,e:'Tak! Ryjąc korytarze, pomaga roślinom rosnąć.'},
+  {c:'badacz',q:'Winniczek to największy ślimak lądowy w Polsce.',t:true,d:4,e:'Tak! Ten ślimak z dużą muszlą jest u nas najpopularniejszy.'},
+  {c:'badacz',q:'Mrówki mieszkają razem w mrowisku.',t:true,d:2,e:'Tak! W mrowisku żyje mnóstwo mrówek, które sobie pomagają.'},
+  {c:'badacz',q:'Wiek drzewa można poznać, licząc słoje w pniu.',t:true,d:4,e:'Tak! Co roku w pniu przybywa jeden słój — to jak liczenie urodzin drzewa.'},
+  {c:'badacz',q:'Kora chroni drzewo przed zimnem, upałem i chorobami.',t:true,d:3,e:'Tak! Kora to płaszcz drzewa — każdy gatunek ma inną.'},
+  {c:'badacz',q:'Żywica zakleja ranę drzewa jak plaster.',t:true,d:4,e:'Tak! Lepka żywica pojawia się tam, gdzie drzewo zostało uszkodzone.'},
+  {c:'badacz',q:'Nauka o drzewach to dendrologia.',t:true,d:5,e:'Tak! Naukowiec, który bada drzewa, to dendrolog.'},
+  {c:'badacz',q:'Świerk, sosna i jodła to drzewa iglaste — mają igły.',t:true,d:3,e:'Tak! Zamiast szerokich liści mają cienkie igły.'},
+  {c:'badacz',q:'Wszystkie drzewa zrzucają liście na zimę.',t:false,d:4,e:'Nie! Drzewa iglaste, np. świerk i sosna, zostają zielone przez całą zimę.'},
+  {c:'badacz',q:'Z żołędzi wyrastają dęby.',t:true,d:3,e:'Tak! Żołądź to nasiono dębu — z niego rośnie nowe drzewo.'},
+  {c:'badacz',q:'Grzyb ma kapelusz i trzon.',t:true,d:2,e:'Tak! Pod kapeluszem bywają blaszki albo rurki.'},
+  {c:'badacz',q:'Wszystkie grzyby w lesie można bezpiecznie zjeść.',t:false,d:4,e:'Nie! Niektóre są trujące, np. muchomor sromotnikowy. Grzyby zbieramy tylko z dorosłym.'},
+  {c:'badacz',q:'Grzyby zbieramy tylko razem z dorosłym.',t:true,d:3,e:'Tak! Łatwo pomylić grzyb jadalny z trującym, dlatego potrzebna jest pomoc dorosłego.'},
+  {c:'badacz',q:'Ptaki mają dziób i pióra.',t:true,d:2,e:'Tak! Po dziobie i piórach łatwo poznać ptaka.'},
+  {c:'badacz',q:'Niektóre zwierzęta są aktywne w dzień, a inne w nocy.',t:true,d:3,e:'Tak! Np. sowa i nietoperz polują nocą, a wiewiórka w dzień.'},
+  {c:'badacz',q:'Jeż i niedźwiedź zapadają na zimę w sen zimowy.',t:true,d:3,e:'Tak! Przesypiają mroźny czas, gdy trudno o jedzenie.'},
+  {c:'badacz',q:'Wiewiórka jesienią robi zapasy na zimę.',t:true,d:3,e:'Tak! Chowa orzechy i nasiona, żeby mieć co jeść zimą.'},
+  {c:'badacz',q:'Zimą warto dokarmiać ptaki.',t:true,d:3,e:'Tak! Gdy wszystko skuje lód, ptakom trudno o pokarm — pomagamy im w karmniku.'},
+  {c:'badacz',q:'Sikorka, gil i wróbel zostają u nas na zimę.',t:true,d:4,e:'Tak! Te ptaki nie odlatują — można je spotkać przy karmniku.'},
+  {c:'badacz',q:'Roślinom do życia potrzebne są woda, światło i powietrze.',t:true,d:3,e:'Tak! Dzięki nim roślina rośnie i robi sobie pożywienie.'},
+  {c:'badacz',q:'Bez Słońca rośliny nie mogłyby rosnąć.',t:true,d:3,e:'Tak! Światło Słońca daje roślinom energię do życia.'},
+  {c:'badacz',q:'Powietrza nie widać, ale jest wszędzie wokół nas.',t:true,d:3,e:'Tak! Czujemy je jako wiatr i potrzebujemy go do oddychania.'},
+  {c:'badacz',q:'Wiosną rośliny budzą się i zakwitają.',t:true,d:2,e:'Tak! Po zimie robi się ciepło i pojawiają się pierwsze kwiaty i listki.'},
+  {c:'badacz',q:'Marchewka i pietruszka rosną pod ziemią.',t:true,d:3,e:'Tak! Jemy ich korzeń, który rośnie w glebie.'},
+  {c:'badacz',q:'Z jajka może wykluć się ptak, żółw albo żaba.',t:true,d:4,e:'Tak! Jaja składają nie tylko ptaki — także gady i płazy (żabi skrzek).'},
+  {c:'badacz',q:'Jaja składają tylko ptaki.',t:false,d:4,e:'Nie! Jaja składają też żółwie, węże i żaby.'},
+  {c:'badacz',q:'W glebie mieszkają dżdżownice, mrówki i korzenie roślin.',t:true,d:3,e:'Tak! Pod ziemią kryje się mnóstwo życia.'},
+  {c:'badacz',q:'Korzeń trzyma roślinę w ziemi i pije wodę.',t:true,d:3,e:'Tak! Przez korzeń roślina pobiera wodę i to, co potrzebne do wzrostu.'},
+  {c:'badacz',q:'Śmieci wyrzucamy do kosza, a nie na trawę.',t:true,d:2,e:'Tak! Dbamy o czystą przyrodę dla zwierząt i roślin.'},
+  {c:'badacz',q:'Segregowanie śmieci pomaga przyrodzie.',t:true,d:4,e:'Tak! Dzięki temu śmieci można przerobić na nowe rzeczy zamiast zaśmiecać świat.'},
+  {c:'badacz',q:'Hałas i śmieci pomagają zwierzętom w lesie.',t:false,d:4,e:'Nie! Szkodzą im — zwierzęta potrzebują czystego i spokojnego miejsca.'},
+  {c:'badacz',q:'Budka lęgowa to domek, w którym ptaki mogą uwić gniazdo.',t:true,d:3,e:'Tak! Wieszamy ją na drzewie, żeby pomóc ptakom.'},
+  {c:'badacz',q:'Owoce i warzywa dają nam witaminy i są zdrowe.',t:true,d:2,e:'Tak! Dzięki nim jesteśmy silni i zdrowi.'},
 ];
 const tfRecent={};
 function roundTrueFalse(d,themeKey){
   locked=false; if(!levelState.usedTF)levelState.usedTF=new Set();
   const theme=themeKey?TF_THEMES.find(t=>t.key===themeKey):null;
-  const hard=d>=3;
-  let pool=FACTS.filter(x=>(!theme||theme.cats.indexOf(x.c)>=0)&&(hard||(x.d||1)===1));
-  if(!pool.length)pool=FACTS.filter(x=>(!theme||theme.cats.indexOf(x.c)>=0));
+  const inTheme=FACTS.filter(x=>!theme||theme.cats.indexOf(x.c)>=0);
+  // poziom -> docelowa trudność (każdy kolejny poziom odrobinę trudniejszy)
+  const tier=clamp(Math.ceil(d/6),1,5);
+  const lo=tier<=1?1:tier, hi=tier+1;
+  let pool=inTheme.filter(x=>{ const fd=x.d||1; return fd>=lo&&fd<=hi; });
+  if(pool.length<6)pool=inTheme.filter(x=>{ const fd=x.d||1; return fd>=Math.max(1,tier-1)&&fd<=tier+2; });
+  if(!pool.length)pool=inTheme;
   const rk=themeKey||'_', rec=tfRecent[rk]||(tfRecent[rk]=[]);
   let avail=pool.filter(x=>rec.indexOf(x.q)<0 && !levelState.usedTF.has(x.q));
   if(!avail.length)avail=pool.filter(x=>!levelState.usedTF.has(x.q));
@@ -1055,17 +1257,18 @@ function roundTrueFalse(d,themeKey){
 /* ---------- Level mode ---------- */
 let levelState=null, locked=false;
 function setBubble(t){ bubble().textContent=t; }
-function startLevel(cat,n){ levelState={cat,n,qi:0,wrong:0}; show('game'); $('backBtn').onclick=()=>openMap(cat);
-  const names={letters:'Literki',numbers:'Liczby',logic:'Zagadki'};
+const ONESHOT=['memory','sorting'];
+function startLevel(cat,n){ levelState={cat,n,qi:0,wrong:0,oneShot:ONESHOT.indexOf(cat)>=0}; show('game'); $('backBtn').onclick=()=>openMap(cat);
+  const names={letters:'Literki',numbers:'Liczby',logic:'Zagadki',memory:'Pamięć',sorting:'Sortowanie'};
   const nm = cat.indexOf('tf:')===0 ? ((TF_THEMES.find(t=>'tf:'+t.key===cat)||{}).name||'Quiz') : names[cat];
-  $('lvlLabel').textContent=nm+' • Poziom '+n+'  '; updatePips();
+  $('lvlLabel').textContent=nm+' • Poziom '+n+'  '; if(levelState.oneShot)$('pips').innerHTML=''; else updatePips();
   const intro='Poziom '+n+'! Dasz radę!'; setBubble(intro); say(intro); setTimeout(nextRound,650);
 }
 function updatePips(){ let h=''; for(let i=0;i<QPL;i++)h+=`<span class="pip${i<levelState.qi?' on':''}"></span>`; $('pips').innerHTML=h; }
 function effD(){ const n=levelState.n, m=state.mode; if(m==='podstawowy')return Math.min(n,4); if(m==='trudny')return n+8; return n; }
 function nextRound(){ const c=levelState.cat,d=effD();
   if(c.indexOf('tf:')===0) return roundTrueFalse(d,c.slice(3));
-  c==='letters'?roundLetters(d):c==='numbers'?roundNumbers(d):c==='logic'?roundLogic(d):roundTrueFalse(d); }
+  c==='letters'?roundLetters(d):c==='numbers'?roundNumbers(d):c==='logic'?roundLogic(d):c==='memory'?roundMemory(d):c==='sorting'?roundSorting(d):roundTrueFalse(d); }
 function markCorrect(onCorrect){ locked=true; emiHappy(); const p=pick(PRAISE); setBubble(p); say(p);
   if(onCorrect)setTimeout(onCorrect,650); dayRec().correct++; save(); confetti(); setTimeout(advance,2300); }
 function markWrong(){ levelState.wrong++; dayRec().wrong++; save(); const t=pick(TRY); setBubble(t); say(t); }
@@ -1091,20 +1294,25 @@ function renderType(emoji,word,mode){
         const cls='slot'+(val===''&&i===pos?' active':'')+(val===''&&i===miss?' miss':'');
         return `<div class="${cls}">${val}</div>`; }).join('')+`</div>`;
   }
-  let keys;
-  if(mode==='missing'){ const correct=up[miss], pool=LETTERS_ORD.map(caseL).filter(l=>l!==correct); keys=shuffle([correct,...shuffle(pool).slice(0,5)]);
-    setBubble('Wpisz brakującą literę'); ask('Wpisz brakującą literę w słowie '+word); }
-  else{ const ul=[...new Set(up)], pool=LETTERS_ORD.map(caseL).filter(l=>ul.indexOf(l)<0); keys=shuffle([...ul,...shuffle(pool).slice(0,Math.min(4,pool.length))]);
-    setBubble('Napisz słowo!'); ask('Napisz słowo '+word); }
   drawSlots();
   const el=optionsEl();
-  el.innerHTML=`<div class="kbd">`+keys.map(k=>`<button class="key" data-k="${k}">${k}</button>`).join('')+`</div>`;
-  el.querySelectorAll('.key').forEach(b=>{ b.onclick=()=>{ if(locked)return; const k=b.dataset.k, need=up[pos]; say(k);
-    if(k===need){ filled[pos]=k;
-      if(mode==='spell'){ pos++; while(pos<up.length&&filled[pos]!=='')pos++; }
-      drawSlots();
-      if(filled.every(x=>x!=='')) markCorrect(()=>say(word+'!'));
-    } else { b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),400); markWrong(); } }; });
+  if(mode==='spell'){
+    // tylko litery z tego słowa — każde wystąpienie jako osobny kafelek; użyte = wyszarzone
+    setBubble('Napisz słowo!'); ask('Napisz słowo '+word+'. Dotykaj liter po kolei.');
+    const tiles=shuffle(up.map((ch,i)=>({ch,id:i})));
+    el.innerHTML=`<div class="kbd">`+tiles.map(t=>`<button class="key" data-k="${t.ch}" data-id="${t.id}">${t.ch}</button>`).join('')+`</div>`;
+    el.querySelectorAll('.key').forEach(b=>{ b.onclick=()=>{ if(locked||b.classList.contains('used'))return; const k=b.dataset.k, need=up[pos]; say(k);
+      if(k===need){ b.classList.add('used'); b.disabled=true; filled[pos]=k; pos++; while(pos<up.length&&filled[pos]!=='')pos++;
+        drawSlots(); if(filled.every(x=>x!=='')) markCorrect(()=>say(word+'!'));
+      } else { b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),400); markWrong(); } }; });
+  } else {
+    setBubble('Wpisz brakującą literę'); ask('Wpisz brakującą literę w słowie '+word);
+    const correct=up[miss], pool=LETTERS_ORD.map(caseL).filter(l=>l!==correct), keys=shuffle([correct,...shuffle(pool).slice(0,5)]);
+    el.innerHTML=`<div class="kbd">`+keys.map(k=>`<button class="key" data-k="${k}">${k}</button>`).join('')+`</div>`;
+    el.querySelectorAll('.key').forEach(b=>{ b.onclick=()=>{ if(locked)return; const k=b.dataset.k, need=up[pos]; say(k);
+      if(k===need){ filled[pos]=k; drawSlots(); if(filled.every(x=>x!=='')) markCorrect(()=>say(word+'!')); }
+      else { b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),400); markWrong(); } }; });
+  }
 }
 /* ---------- Rysowanie litery (trace) → przykłady → dalej ---------- */
 function roundLetterLesson(d){ const k=pick(LETTERS_ORD);
@@ -1216,6 +1424,109 @@ function attachDrag(el, zr, wrap){
     } else { if(z&&z.dataset.key!==el.dataset.key)markWrong(); home(el); } });
   el.addEventListener('pointercancel',()=>{ if(active){active=false;el.classList.remove('dragging');home(el);} });
 }
+/* ---------- Pamięć (memory) ---------- */
+const MEM_DECKS=[
+  {key:'mix', name:'Różne', emoji:'🎲', pool:['🍎','⭐','🎈','🍓','🐞','🌸','🐠','🍪','🦋','🍒','🐝','🌟','🧁','🌷']},
+  {key:'pop', name:'Gwiazdy Pop', emoji:'✨', pool:['🎤','⭐','💖','🎵','🎶','👑','🌟','✨','🎸','🥁','💜','🦋','🌈','🪩']},
+  {key:'koty', name:'Kotki i Domek', emoji:'🐱', pool:['🐱','🏠','🎀','🧁','🍰','🌈','🪀','🧸','🌸','🐾','⭐','🎈','🍓','🪁']},
+  {key:'magia', name:'Magiczna kraina', emoji:'🦄', pool:['🦄','🌈','⭐','💖','🌟','🌸','🦋','✨','👑','🍭','🎀','🪄','💎','🌙']},
+  {key:'zwierzaki', name:'Zwierzaki', emoji:'🐾', pool:['🐶','🐱','🦊','🐻','🐰','🐼','🐯','🦁','🐸','🐵','🐷','🐮','🐔','🐧']},
+];
+function memPool(){ return (MEM_DECKS.find(x=>x.key===state.memDeck)||MEM_DECKS[0]).pool; }
+function oneShotComplete(){ locked=true; const p=pick(PRAISE); setBubble(p); say(p); dayRec().correct++; save(); confetti();
+  setTimeout(()=>{ if(levelState&&levelState.demo)advance(); else finishLevel(); },1700); }
+function roundMemory(d){ locked=false;
+  const np=clamp(2+Math.floor(d/3),2,8);
+  const chosen=shuffle(memPool()).slice(0,np);
+  const cards=shuffle(chosen.concat(chosen));
+  const total=cards.length, cols= total<=4?2 : total<=6?3 : 4;
+  promptArea().innerHTML='<div class="drag-hint">🧠 Znajdź pasujące pary</div>';
+  setBubble('Znajdź takie same!'); ask('Odkrywaj karty i znajdź pasujące pary.');
+  const el=optionsEl();
+  el.innerHTML=`<div class="mem-grid" style="grid-template-columns:repeat(${cols},1fr)">`
+    +cards.map(e=>`<button class="mem-card" data-e="${e}"><span class="mc-back">❓</span><span class="mc-face">${EMO(e)}</span></button>`).join('')
+    +`</div>`;
+  let first=null, busy=false, matched=0;
+  el.querySelectorAll('.mem-card').forEach(c=>{ c.onclick=()=>{
+    if(locked||busy||c.classList.contains('flipped')||c.classList.contains('matched'))return;
+    c.classList.add('flipped');
+    if(!first){ first=c; return; }
+    if(first.dataset.e===c.dataset.e){ first.classList.add('matched'); c.classList.add('matched'); emiHappy(); first=null; matched++;
+      if(matched>=np)oneShotComplete(); }
+    else{ busy=true; markWrong(); const a=first,b=c; first=null;
+      setTimeout(()=>{ a.classList.remove('flipped'); b.classList.remove('flipped'); busy=false; },900); }
+  };});
+}
+/* ---------- Sortowanie: karty przesuwane (lewo/prawo) ---------- */
+const SWIPE_THEMES=[
+  {q:'Co potrafi latać?', l:{name:'Lata',emoji:'🕊️'}, r:{name:'Nie lata',emoji:'🐢'}, items:[
+    ['🦅','l'],['🦋','l'],['🐝','l'],['🦉','l'],['🦇','l'],['🐞','l'],['✈️','l'],['🚁','l'],['🚀','l'],['🦜','l'],['🦆','l'],
+    ['🐢','r'],['🐟','r'],['🐘','r'],['🐍','r'],['🐧','r'],['🦒','r'],['🚗','r'],['🚲','r'],['🐌','r'],['🦀','r'],['🐊','r'],['🐎','r']]},
+  {q:'Gdzie to mieszka?', l:{name:'W wodzie',emoji:'🌊'}, r:{name:'Na lądzie',emoji:'🌳'}, items:[
+    ['🐟','l'],['🐠','l'],['🐬','l'],['🐙','l'],['🦈','l'],['🐳','l'],['🦭','l'],['🦀','l'],['🐡','l'],['🦑','l'],['🐢','l'],
+    ['🐶','r'],['🐱','r'],['🦁','r'],['🐘','r'],['🦒','r'],['🐻','r'],['🐰','r'],['🦌','r'],['🐴','r'],['🐮','r'],['🐔','r']]},
+  {q:'Czy to żywe stworzenie?', l:{name:'Żywe',emoji:'🐾'}, r:{name:'Przedmiot',emoji:'📦'}, items:[
+    ['🐶','l'],['🐱','l'],['🐟','l'],['🐦','l'],['🦋','l'],['🐝','l'],['🐘','l'],['🐢','l'],['🐰','l'],['🦊','l'],
+    ['🚗','r'],['🪑','r'],['⚽','r'],['🚲','r'],['📚','r'],['✏️','r'],['🔑','r'],['🥄','r'],['👟','r'],['⏰','r'],['🧦','r']]},
+  {q:'Owoc czy warzywo?', l:{name:'Owoc',emoji:'🍎'}, r:{name:'Warzywo',emoji:'🥕'}, items:[
+    ['🍎','l'],['🍌','l'],['🍓','l'],['🍇','l'],['🍊','l'],['🍐','l'],['🍑','l'],['🍉','l'],['🍒','l'],['🥝','l'],['🍍','l'],
+    ['🥕','r'],['🥦','r'],['🌽','r'],['🥔','r'],['🧅','r'],['🥒','r'],['🍆','r'],['🫑','r'],['🥬','r'],['🧄','r']]},
+  {q:'Można to zjeść?', l:{name:'Jadalne',emoji:'😋'}, r:{name:'Niejadalne',emoji:'🚫'}, items:[
+    ['🍎','l'],['🍌','l'],['🍕','l'],['🍪','l'],['🥕','l'],['🧀','l'],['🍓','l'],['🥪','l'],['🍇','l'],['🍩','l'],['🥨','l'],
+    ['🚗','r'],['👟','r'],['📚','r'],['⚽','r'],['✏️','r'],['🪑','r'],['🧦','r'],['🔑','r'],['🚲','r'],['🧸','r'],['☂️','r']]},
+  /* z podręcznika „Przyroda PLUS": przyroda ożywiona / nieożywiona */
+  {q:'Przyroda żywa czy nieżywa?', l:{name:'Żywa',emoji:'🌱'}, r:{name:'Nieżywa',emoji:'🪨'}, items:[
+    ['🐶','l'],['🐱','l'],['🐟','l'],['🐦','l'],['🦋','l'],['🐝','l'],['🌳','l'],['🌸','l'],['🌷','l'],['🐢','l'],['🦔','l'],['🌻','l'],
+    ['🪨','r'],['💧','r'],['☀️','r'],['☁️','r'],['❄️','r'],['⛰️','r'],['🌙','r'],['⭐','r']]},
+  {q:'Roślina czy zwierzę?', l:{name:'Roślina',emoji:'🌿'}, r:{name:'Zwierzę',emoji:'🐾'}, items:[
+    ['🌳','l'],['🌸','l'],['🌷','l'],['🌻','l'],['🌲','l'],['🌵','l'],['🍀','l'],['🌹','l'],['🌾','l'],
+    ['🐶','r'],['🐱','r'],['🐟','r'],['🐦','r'],['🦋','r'],['🐝','r'],['🐢','r'],['🦊','r'],['🐞','r'],['🐰','r']]},
+];
+let swipeLast=-1;
+function roundSorting(d){ locked=false;
+  let ti; do{ ti=rnd(SWIPE_THEMES.length); }while(SWIPE_THEMES.length>1&&ti===swipeLast); swipeLast=ti;
+  const theme=SWIPE_THEMES[ti];
+  const N=clamp(5+Math.floor(d/2),5,14);
+  // dobierz po równo z obu stron, potem dopełnij
+  const L=shuffle(theme.items.filter(x=>x[1]==='l')), R=shuffle(theme.items.filter(x=>x[1]==='r'));
+  const half=Math.ceil(N/2); let pool=shuffle(L.slice(0,half).concat(R.slice(0,N-Math.min(half,L.length))));
+  if(pool.length<N){ pool=shuffle(theme.items).slice(0,N); }
+  const total=pool.length; let idx=0;
+  promptArea().innerHTML=`<div class="drag-hint">${theme.q}</div>`;
+  setBubble(theme.q); ask(theme.q+' Przeciągnij kartę w lewo lub w prawo.');
+  const el=optionsEl();
+  el.innerHTML=`<div class="swipe-wrap">
+    <div class="sw-row">
+      <div class="sw-tag left" data-side="l">${EMO(theme.l.emoji)}<span>${theme.l.name}</span></div>
+      <div class="sw-stack" id="swStack"></div>
+      <div class="sw-tag right" data-side="r">${EMO(theme.r.emoji)}<span>${theme.r.name}</span></div>
+    </div>
+    <div class="sw-count" id="swCount"></div></div>`;
+  const stack=$('swStack');
+  function draw(){ stack.innerHTML='';
+    for(let i=Math.min(idx+2,total-1); i>=idx; i--){ const it=pool[i], depth=i-idx;
+      const c=document.createElement('div'); c.className='sw-card'+(depth?'':' top'); c.dataset.side=it[1];
+      c.style.transform=`translateY(${depth*12}px) scale(${1-depth*0.05})`; c.style.zIndex=String(50-depth);
+      c.innerHTML=`<div class="sw-emoji">${EMO(it[0])}</div>`; stack.appendChild(c); }
+    const top=stack.querySelector('.sw-card.top'); if(top)attachSwipe(top);
+    $('swCount').textContent=idx+' / '+total; }
+  function classify(card,side){ if(locked||!card)return;
+    if(side===card.dataset.side){ card.classList.add(side==='l'?'go-left':'go-right'); emiHappy(); idx++;
+      if(idx>=total){ el.querySelectorAll('.sw-tag').forEach(t=>t.onclick=null); oneShotComplete(); }
+      else setTimeout(draw,280);
+    } else { markWrong(); card.classList.add('shake'); setTimeout(()=>{ card.classList.remove('shake'); card.style.transition='transform .2s'; card.style.transform='translateY(0) scale(1)'; setTimeout(()=>card.style.transition='',200); },420); }
+  }
+  el.querySelectorAll('.sw-tag').forEach(t=>{ t.onclick=()=>classify(stack.querySelector('.sw-card.top'),t.dataset.side); });
+  function attachSwipe(card){ let active=false,sx=0,dx=0;
+    card.addEventListener('pointerdown',e=>{ if(locked)return; active=true; sx=e.clientX; dx=0; card.style.transition=''; try{card.setPointerCapture(e.pointerId);}catch(_){} e.preventDefault(); });
+    card.addEventListener('pointermove',e=>{ if(!active)return; dx=e.clientX-sx; const vis=clamp(dx,-150,150); card.style.transform=`translateX(${vis}px) rotate(${vis*0.06}deg)`;
+      el.querySelector('.sw-tag.left').classList.toggle('hot',dx<-40); el.querySelector('.sw-tag.right').classList.toggle('hot',dx>40); });
+    card.addEventListener('pointerup',e=>{ if(!active)return; active=false; el.querySelectorAll('.sw-tag').forEach(t=>t.classList.remove('hot'));
+      const TH=64; if(dx<-TH)classify(card,'l'); else if(dx>TH)classify(card,'r'); else { card.style.transition='transform .2s'; card.style.transform='translateY(0) scale(1)'; setTimeout(()=>card.style.transition='',200); } });
+    card.addEventListener('pointercancel',()=>{ if(active){active=false; el.querySelectorAll('.sw-tag').forEach(t=>t.classList.remove('hot')); card.style.transform='translateY(0) scale(1)';} });
+  }
+  draw();
+}
 function advance(){ if(levelState&&levelState.demo){ levelState.qi++;
     if(levelState.qi>=levelState.demo.length){ const wasProg=levelState.isProgram; if(wasProg){ finishProgram(); } else { say('Koniec podglądu! Brawo.'); goHome(); } levelState.demo=null; }
     else demoStep(); return; }
@@ -1224,6 +1535,7 @@ const DEMO_LIST=[
   ['letters','letterlesson',6],['letters','l2p',4],['letters','p2l',4],['letters','missing',6],['letters','matchpic',8],['letters','spell',12],
   ['numbers','count',3],['numbers','group',6],['numbers','matchgrp',8],['numbers','largest',9],['numbers','order',10],['numbers','add',14],['numbers','sub',16],['numbers','missadd',20],
   ['logic','oddcolor',3],['logic','same',3],['logic','bigsmall',3],['logic','oddshape',4],['logic','pairs',5],['logic','pattern',7],['logic','orderobj',7],['logic','ordersize',11],['logic','oddcat',9],
+  ['memory','',5],['memory','',12],['sorting','',5],['sorting','',12],
   ['tf','zwierzeta',5]];
 function startDemo(){ levelState={cat:'__demo',demo:DEMO_LIST,qi:0,wrong:0,usedTF:new Set()}; show('game'); $('backBtn').onclick=goHome; $('pips').innerHTML=''; demoStep(); }
 function demoStep(){ const [c,v,d0]=levelState.demo[levelState.qi]; levelState.usedTF=new Set();
@@ -1231,7 +1543,7 @@ function demoStep(){ const [c,v,d0]=levelState.demo[levelState.qi]; levelState.u
   const d=clamp(d0+off,1,30); levelState.n=d;
   $('lvlLabel').textContent=(levelState.seqLabel||'Podgląd zadań')+' '+(levelState.qi+1)+'/'+levelState.demo.length+'  ';
   levelState.cat = c==='tf' ? 'tf:'+v : c;
-  if(c==='letters')roundLetters(d,v); else if(c==='numbers')roundNumbers(d,v); else if(c==='logic')roundLogic(d,v); else roundTrueFalse(d,v); }
+  if(c==='letters')roundLetters(d,v); else if(c==='numbers')roundNumbers(d,v); else if(c==='logic')roundLogic(d,v); else if(c==='memory')roundMemory(d); else if(c==='sorting')roundSorting(d); else roundTrueFalse(d,v); }
 function emiHappy(){ const e=$('emiGame'); e.classList.remove('happy'); void e.offsetWidth; e.classList.add('happy'); }
 
 function MP(){ return state.progress[state.mode]||(state.progress[state.mode]={}); }
@@ -1258,19 +1570,27 @@ function finishLevel(){
 }
 
 /* ---------- Map ---------- */
-const CATCLASS={letters:'lt',numbers:'nu',logic:'lo',truefalse:'tf'};
+const CATCLASS={letters:'lt',numbers:'nu',logic:'lo',truefalse:'tf',memory:'me',sorting:'so'};
 function maxDone(cat){ const p=prog(cat); let m=0; for(const k in p)if(+k>m)m=+k; return m; }
 function curLevel(cat){ return clamp(maxDone(cat)+1,1,TOTAL); }
 function openMap(cat){ show('map'); renderMap(cat); }
+function renderDeckBar(cat){ const bar=$('deckBar'); if(!bar)return;
+  if(cat!=='memory'){ bar.style.display='none'; bar.innerHTML=''; return; }
+  bar.style.display='flex'; bar.innerHTML='<span class="deck-lbl">🎴 Talia:</span>'
+    +MEM_DECKS.map(d=>`<button class="deck-pill${state.memDeck===d.key?' on':''}" data-deck="${d.key}">${EMO(d.emoji)} ${d.name}</button>`).join('');
+  bar.querySelectorAll('.deck-pill').forEach(b=>{ b.onclick=()=>{ unlockAudio(); state.memDeck=b.dataset.deck; save(); renderDeckBar('memory');
+    const d=MEM_DECKS.find(x=>x.key===state.memDeck); say('Talia '+(d?d.name:'')); }; });
+}
 function renderMap(cat){
   const P=prog(cat);
   let title,tint,cc;
   if(cat.indexOf('tf:')===0){ const t=TF_THEMES.find(x=>'tf:'+x.key===cat)||{name:'Quiz',emoji:'🤔'};
     title=t.emoji+' '+t.name; tint='rgba(52,214,192,.09)'; cc='tf'; $('mapBack').onclick=showTFMenu; }
-  else { const names={letters:'🔤 Mapa Literek',numbers:'🔢 Mapa Liczb',logic:'🧩 Mapa Zagadek'};
-    const tints={letters:'rgba(255,77,157,.07)',numbers:'rgba(43,179,240,.08)',logic:'rgba(155,89,230,.08)'};
+  else { const names={letters:'🔤 Mapa Literek',numbers:'🔢 Mapa Liczb',logic:'🧩 Mapa Zagadek',memory:'🧠 Mapa Pamięci',sorting:'🃏 Mapa Sortowania'};
+    const tints={letters:'rgba(255,77,157,.07)',numbers:'rgba(43,179,240,.08)',logic:'rgba(155,89,230,.08)',memory:'rgba(245,135,31,.08)',sorting:'rgba(232,83,111,.08)'};
     title=names[cat]; tint=tints[cat]; cc=CATCLASS[cat]; $('mapBack').onclick=goHome; }
   $('mapTitle').textContent=title; $('mapScroll').style.background=tint;
+  renderDeckBar(cat);
   $('mapBubble').textContent=maxDone(cat)>=TOTAL?'Temat ukończony! 🎉':'Wybierz poziom!';
   const inner=$('mapInner'), stepY=100, padTop=64, padBot=80, H=padTop+(TOTAL-1)*stepY+padBot; inner.style.height=H+'px';
   const cur=curLevel(cat);
@@ -1325,7 +1645,7 @@ function renderStats(){
 /* ---------- Achievements ---------- */
 const CAT_KEYS_C=['letters','numbers','logic','truefalse'];
 function completedCount(){ return Object.values(MP()).reduce((a,p)=>a+Object.keys(p||{}).length,0); }
-function totalLevels(){ return (3+TF_THEMES.length)*TOTAL; }
+function totalLevels(){ return (5+TF_THEMES.length)*TOTAL; }
 function mapDone(c){ return Object.keys(prog(c)).length>=TOTAL; }
 function hasPerfect(){ return Object.values(MP()).some(p=>Object.values(p||{}).some(v=>v>=3)); }
 const ACH=[
@@ -1422,13 +1742,15 @@ function renderSettings(){ const body=$('setBody'); body.innerHTML='';
 /* ---------- Navigation ---------- */
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $(id).classList.add('on'); $('repeatBtn').style.display=id==='game'?'flex':'none'; }
 function applyName(){ const e=$('hiName'); if(e)e.textContent=state.childName||'Emilka'; }
-function goHome(){ if('speechSynthesis'in window)speechSynthesis.cancel(); applyName(); renderWorldList(); renderPath(); updateModeUI(); show('home'); }
+function goHome(){ if('speechSynthesis'in window)speechSynthesis.cancel(); applyName(); renderWorldList(); updateModeUI(); show('home'); }
 
 /* ---------- Kategorie (kafelki) ---------- */
 const CATS_HOME=[
   {w:'letters', name:'Literki', emoji:'✏️', col:['#ff6fb0','#ff3d8e'], leg:'#c41f6b'},
   {w:'numbers', name:'Liczby', emoji:'🔢', col:['#46c8f5','#1f8fc4'], leg:'#15688f'},
   {w:'logic', name:'Zagadki', emoji:'🧩', col:['#b06bff','#8338d6'], leg:'#5e22a0'},
+  {w:'memory', name:'Pamięć', emoji:'🧠', col:['#ffb14d','#f5871f'], leg:'#b5610a'},
+  {w:'sorting', name:'Sortowanie', emoji:'🃏', col:['#ff8aa3','#e8536f'], leg:'#b22f48'},
   {w:'truefalse', name:'Prawda / Fałsz', emoji:'💡', col:['#34d6c0','#159c8b'], leg:'#0e6f63'},
 ];
 function catProgress(w){ if(w==='truefalse'){ let d=0; TF_THEMES.forEach(t=>d+=Object.keys(prog('tf:'+t.key)).length); return [d,TOTAL*TF_THEMES.length]; } return [Object.keys(prog(w)).length,TOTAL]; }
@@ -1500,7 +1822,7 @@ function finishProgram(){ const i=levelState.progIdx, wrong=levelState.wrong;
   const nx=$('levelDone').querySelector('.ld-next'); if(nx)nx.onclick=()=>{ $('levelDone').classList.remove('on'); startProgram(i+1); };
 }
 
-renderWorldList(); renderPath();
+renderWorldList();
 
 /* ---------- Profil (taby) ---------- */
 function openProfile(which){ which=which||'wardrobe'; unlockAudio();
